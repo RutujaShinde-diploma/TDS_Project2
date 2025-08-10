@@ -1,0 +1,12 @@
+Analyze this simple dataset:
+
+Name,Age,Salary
+John,25,50000
+Alice,30,65000
+Bob,35,75000
+Carol,28,55000
+
+Answer these questions:
+1. What is the average age?
+2. What is the total salary?
+3. Who has the highest salary?

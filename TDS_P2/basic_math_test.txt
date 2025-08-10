@@ -1,0 +1,7 @@
+Perform these simple calculations and return the results:
+
+1. What is 2 + 2?
+2. What is 5 * 3?
+3. What is 10 - 4?
+
+Return the answers as a JSON array of strings.

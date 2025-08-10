@@ -1,0 +1,19 @@
+Analyze the following dataset and answer the questions:
+
+Dataset:
+Name,Age,Salary,Department
+John,25,50000,Engineering
+Alice,30,65000,Marketing
+Bob,35,75000,Engineering
+Carol,28,55000,Sales
+David,32,70000,Engineering
+Emma,29,60000,Marketing
+Frank,40,80000,Sales
+Grace,27,52000,Engineering
+
+Questions:
+1. How many people work in the Engineering department?
+2. What is the average salary across all departments?
+3. Which department has the highest average salary?
+
+Return the answers as a JSON array of strings.
