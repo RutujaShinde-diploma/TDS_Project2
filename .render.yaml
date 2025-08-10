@@ -1,4 +1,3 @@
-# Render deployment configuration for Data Analyst Agent API
 services:
   - type: web
     name: data-analyst-agent-api
