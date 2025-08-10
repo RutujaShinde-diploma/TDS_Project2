@@ -3,9 +3,11 @@ services:
   - type: web
     name: data-analyst-agent-api
     env: docker
-    dockerfilePath: ./TDS_P2/Dockerfile
-    dockerContext: ./TDS_P2
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: starter
+    buildCommand: echo "Using Docker build"
+    startCommand: echo "Using Docker start command"
     envVars:
       - key: OPENAI_API_KEY
         sync: false
