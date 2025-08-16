@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import aiofiles
@@ -38,6 +38,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all incoming requests for debugging"""
+    logger.info(f"Incoming {request.method} request to {request.url}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
+    # Log form data for POST requests
+    if request.method == "POST":
+        try:
+            form_data = await request.form()
+            logger.info(f"Form data keys: {list(form_data.keys())}")
+            for key, value in form_data.items():
+                if hasattr(value, 'filename'):
+                    logger.info(f"File field '{key}': filename={value.filename}, size={value.size}")
+                else:
+                    logger.info(f"Form field '{key}': {value}")
+        except Exception as e:
+            logger.warning(f"Could not parse form data: {e}")
+    
+    response = await call_next(request)
+    logger.info(f"Response status: {response.status_code}")
+    return response
 
 # Initialize components
 planner = PlannerModule()
@@ -85,6 +109,26 @@ async def health_check():
             "job_storage": "ok"
         }
     }
+
+@app.post("/test-upload")
+async def test_file_upload(questions: UploadFile = File(...)):
+    """Test endpoint to verify file uploads are working"""
+    try:
+        if not questions:
+            return {"error": "No file received"}
+        
+        content = await questions.read()
+        text = content.decode('utf-8')
+        
+        return {
+            "success": True,
+            "filename": questions.filename,
+            "size": questions.size,
+            "content_length": len(text),
+            "content_preview": text[:100] + "..." if len(text) > 100 else text
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/api/storage/stats")
 async def get_storage_stats():
@@ -207,8 +251,16 @@ async def analyze_data(
     logger.info(f"Starting job {job_id} (bypass_cache: {bypass_cache})")
     
     try:
+        # Debug logging for file upload
+        logger.info(f"Received request - questions filename: {questions.filename if questions else 'None'}")
+        logger.info(f"Questions file size: {questions.size if questions else 'None'}")
+        
+        # Validate that questions file was actually received
+        if not questions:
+            raise HTTPException(status_code=400, detail="No questions file received")
+        
         # Validate questions file
-        if not questions.filename.endswith('.txt'):
+        if not questions.filename or not questions.filename.endswith('.txt'):
             raise HTTPException(status_code=400, detail="questions file must be a .txt file")
         
         # Create job workspace
@@ -216,8 +268,19 @@ async def analyze_data(
         job_workspace.mkdir(exist_ok=True)
         
         # Save questions file
-        questions_content = await questions.read()
-        questions_text = questions_content.decode('utf-8')
+        try:
+            questions_content = await questions.read()
+            if not questions_content:
+                raise HTTPException(status_code=400, detail="Questions file is empty")
+            
+            questions_text = questions_content.decode('utf-8')
+            logger.info(f"Successfully read questions file, content length: {len(questions_text)}")
+            
+        except UnicodeDecodeError:
+            raise HTTPException(status_code=400, detail="Questions file must be valid UTF-8 text")
+        except Exception as e:
+            logger.error(f"Error reading questions file: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Failed to read questions file: {str(e)}")
         
         questions_path = job_workspace / "questions.txt"
         async with aiofiles.open(questions_path, 'w') as f:
@@ -281,8 +344,13 @@ async def analyze_data(
             # Single result
             return {"answer1": str(result)}
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
         logger.error(f"Error processing job {job_id}: {str(e)}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception details: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 @app.get("/api/job/{job_id}", response_model=JobResponse)
