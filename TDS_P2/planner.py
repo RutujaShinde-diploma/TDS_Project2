@@ -81,6 +81,43 @@ class PlannerModule:
         
         return file_metadata
     
+    def _analyze_embedded_data(self, questions_text: str) -> Dict[str, Any]:
+        """Analyze the questions text to detect embedded data structures"""
+        embedded_data = {
+            "has_csv_data": False,
+            "has_table_data": False,
+            "data_preview": "",
+            "data_type": "text_only"
+        }
+        
+        lines = questions_text.strip().split('\n')
+        
+        # Look for CSV-like patterns
+        for i, line in enumerate(lines):
+            if ',' in line and not line.startswith('Answer') and not line.startswith('Analyze'):
+                # Check if this looks like CSV data
+                if i + 1 < len(lines) and ',' in lines[i + 1]:
+                    embedded_data["has_csv_data"] = True
+                    embedded_data["data_type"] = "csv_embedded"
+                    # Get a preview of the data
+                    data_lines = []
+                    for j in range(i, min(i + 5, len(lines))):
+                        if ',' in lines[j] and not lines[j].startswith('Answer'):
+                            data_lines.append(lines[j])
+                    embedded_data["data_preview"] = "\n".join(data_lines)
+                    break
+        
+        # Look for table-like patterns
+        if not embedded_data["has_csv_data"]:
+            for line in lines:
+                if '|' in line and line.count('|') > 2:
+                    embedded_data["has_table_data"] = True
+                    embedded_data["data_type"] = "table_embedded"
+                    embedded_data["data_preview"] = line
+                    break
+        
+        return embedded_data
+    
     async def _generate_plan_with_llm(self, job_request: JobRequest, file_metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Use LLM to generate execution plan"""
         
@@ -124,9 +161,12 @@ class PlannerModule:
         """Get the system prompt for plan generation"""
         return """You are an expert data analyst AI that creates detailed execution plans for data analysis tasks.
 
-Given a user's questions and available files, create a JSON execution plan that breaks down the task into discrete actions.
+Given a user's questions and available files (or embedded data), create a JSON execution plan that breaks down the task into discrete actions.
+
+IMPORTANT: If data is embedded in the questions file, use "llm_analysis" action type instead of trying to load external files.
 
 Available action types:
+- llm_analysis: Analyze embedded data directly using LLM (use this for data embedded in questions)
 - scrape: Extract data from web pages
 - load: Load data files into DataFrames
 - s3_query: Query large datasets in S3/parquet
@@ -147,10 +187,10 @@ Requirements:
 1. Each action must have a unique action_id
 2. Actions should be in logical execution order
 3. Estimate realistic time for each action (max 180s total)
-4. Use file references, not raw data
-5. Include proper dependencies between actions
-6. Be specific about inputs and outputs
-7. Do not assume specific data schemas or column names
+4. For embedded data, use llm_analysis action
+5. For external files, use appropriate file-based actions
+6. Include proper dependencies between actions
+7. Be specific about inputs and outputs
 8. Final export action must produce results in the order questions were asked
 
 Return ONLY valid JSON with this structure:
@@ -160,13 +200,13 @@ Return ONLY valid JSON with this structure:
   "actions": [
     {
       "action_id": "action_001",
-      "type": "scrape",
-      "description": "Scrape data from specified URL",
+      "type": "llm_analysis",
+      "description": "Analyze embedded data to answer questions",
       "parameters": {
-        "url": "https://example.com",
-        "target": "table"
+        "data_type": "csv_embedded",
+        "questions": ["question1", "question2"]
       },
-      "output_files": ["data.csv"],
+      "output_variables": ["analysis_results"],
       "estimated_time": 30
     }
   ]
@@ -174,6 +214,9 @@ Return ONLY valid JSON with this structure:
 
     def _create_user_prompt(self, job_request: JobRequest, file_metadata: Dict[str, Any]) -> str:
         """Create user prompt with job details"""
+        # Analyze embedded data in questions
+        embedded_data = self._analyze_embedded_data(job_request.questions)
+        
         prompt = f"""Task: {job_request.questions}
 
 Available files:
@@ -189,13 +232,26 @@ Available files:
         else:
             prompt += "No additional files provided.\n"
         
+        # Add embedded data information
+        if embedded_data["has_csv_data"] or embedded_data["has_table_data"]:
+            prompt += f"""
+EMBEDDED DATA DETECTED:
+- Data type: {embedded_data["data_type"]}
+- Data preview: {embedded_data["data_preview"]}
+
+IMPORTANT: Since data is embedded in the questions, use "llm_analysis" action type to analyze it directly.
+Do NOT try to load external files or execute subprocesses.
+"""
+        
         prompt += """
 Create an execution plan that:
 1. Addresses all questions in the task
 2. Uses appropriate action types for each step
-3. Handles errors gracefully
-4. Completes within 180 seconds
-5. Returns results in the requested format
+3. For embedded data, use llm_analysis action
+4. For external files, use appropriate file-based actions
+5. Handles errors gracefully
+6. Completes within 180 seconds
+7. Returns results in the requested format
 
 Generate the JSON plan now:"""
         

@@ -102,6 +102,33 @@ class Orchestrator:
             status=ActionStatus.IN_PROGRESS
         )
         
+        # Special handling for LLM analysis actions
+        if action.type.value == "llm_analysis":
+            logger.info(f"Executing LLM analysis action {action.action_id}")
+            try:
+                # For LLM analysis, we don't need to execute code in sandbox
+                # The analysis is done directly by the LLM during plan generation
+                analysis_result = await self._execute_llm_analysis(action, context)
+                
+                action_result.status = ActionStatus.COMPLETED
+                action_result.output = {
+                    "success": True,
+                    "result": analysis_result,
+                    "stdout": str(analysis_result),
+                    "stderr": "",
+                    "return_code": 0
+                }
+                action_result.execution_time = 0.1  # Very fast for LLM analysis
+                
+                logger.info(f"LLM analysis action {action.action_id} completed successfully")
+                return action_result
+                
+            except Exception as e:
+                logger.error(f"LLM analysis action {action.action_id} failed: {str(e)}")
+                action_result.status = ActionStatus.FAILED
+                action_result.error = str(e)
+                return action_result
+        
         for attempt in range(config.MAX_RETRIES):
             try:
                 logger.info(f"Executing {action.action_id}, attempt {attempt + 1}")
@@ -194,6 +221,65 @@ class Orchestrator:
         except Exception as e:
             logger.error(f"Code repair failed for {action.action_id}: {str(e)}")
             return None
+    
+    async def _execute_llm_analysis(self, action: Action, context: ExecutionContext) -> Dict[str, Any]:
+        """Execute LLM analysis for embedded data"""
+        try:
+            # Read the questions file to get the embedded data
+            questions_file = Path(context.workspace_path) / "questions.txt"
+            if not questions_file.exists():
+                raise Exception("Questions file not found")
+            
+            with open(questions_file, 'r', encoding='utf-8') as f:
+                questions_content = f.read()
+            
+            # Extract questions from the content
+            lines = questions_content.strip().split('\n')
+            questions = []
+            for line in lines:
+                if line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                    questions.append(line.strip())
+            
+            # Use OpenAI to analyze the embedded data
+            import openai
+            client = openai.AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+            
+            system_prompt = """You are an expert data analyst. Analyze the embedded data and answer the questions accurately.
+
+For CSV data, calculate exact values:
+- Count rows, calculate averages, sums, etc.
+- Identify patterns and relationships
+- Provide precise numerical answers
+
+Return your analysis in a clear, structured format."""
+            
+            user_prompt = f"""Analyze this data and answer the questions:
+
+{questions_content}
+
+Please provide detailed answers to each question with calculations and explanations."""
+            
+            response = await client.chat.completions.create(
+                model=config.OPENAI_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.1,
+                max_tokens=1000
+            )
+            
+            analysis_result = response.choices[0].message.content
+            
+            return {
+                "analysis": analysis_result,
+                "questions_answered": len(questions),
+                "data_type": "embedded_csv"
+            }
+            
+        except Exception as e:
+            logger.error(f"LLM analysis failed: {str(e)}")
+            raise Exception(f"LLM analysis failed: {str(e)}")
     
     async def _cache_successful_code(self, action: Action, context: ExecutionContext, code: str):
         """Cache successful code for future use"""

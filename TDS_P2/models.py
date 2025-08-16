@@ -4,6 +4,7 @@ from enum import Enum
 import json
 
 class ActionType(str, Enum):
+    LLM_ANALYSIS = "llm_analysis"
     SCRAPE = "scrape"
     LOAD = "load"
     S3_QUERY = "s3_query"
