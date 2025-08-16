@@ -255,10 +255,6 @@ async def analyze_data(
         logger.info(f"Received request - questions filename: {questions.filename if questions else 'None'}")
         logger.info(f"Questions file size: {questions.size if questions else 'None'}")
         
-        # Validate that questions file was actually received
-        if not questions:
-            raise HTTPException(status_code=400, detail="No questions file received")
-        
         # Validate questions file
         if not questions.filename or not questions.filename.endswith('.txt'):
             raise HTTPException(status_code=400, detail="questions file must be a .txt file")
