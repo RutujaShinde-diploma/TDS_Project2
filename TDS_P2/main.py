@@ -39,29 +39,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Request logging middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """Log all incoming requests for debugging"""
-    logger.info(f"Incoming {request.method} request to {request.url}")
-    logger.info(f"Headers: {dict(request.headers)}")
-    
-    # Log form data for POST requests
-    if request.method == "POST":
-        try:
-            form_data = await request.form()
-            logger.info(f"Form data keys: {list(form_data.keys())}")
-            for key, value in form_data.items():
-                if hasattr(value, 'filename'):
-                    logger.info(f"File field '{key}': filename={value.filename}, size={value.size}")
-                else:
-                    logger.info(f"Form field '{key}': {value}")
-        except Exception as e:
-            logger.warning(f"Could not parse form data: {e}")
-    
-    response = await call_next(request)
-    logger.info(f"Response status: {response.status_code}")
-    return response
+# Request logging middleware - TEMPORARILY DISABLED due to hanging issues
+# @app.middleware("http")
+# async def log_requests(request: Request, call_next):
+#     """Log all incoming requests for debugging"""
+#     logger.info(f"Incoming {request.method} request to {request.url}")
+#     logger.info(f"Headers: {dict(request.headers)}")
+#     
+#     # Log form data for POST requests
+#     if request.method == "POST":
+#         try:
+#             form_data = await request.form()
+#             logger.info(f"Form data keys: {list(form_data.keys())}")
+#             for key, value in form_data.items():
+#                 if hasattr(value, 'filename'):
+#                     logger.info(f"File field '{key}': filename={value.filename}, size={value.size}")
+#                 else:
+#                     logger.info(f"Form field '{key}': {value}")
+#         except Exception as e:
+#             logger.warning(f"Could not parse form data: {e}")
+#     
+#     response = await call_next(request)
+#     logger.info(f"Response status: {response.status_code}")
+#     return response
 
 # Initialize components
 planner = PlannerModule()
