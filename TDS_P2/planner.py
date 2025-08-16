@@ -150,6 +150,8 @@ Requirements:
 4. Use file references, not raw data
 5. Include proper dependencies between actions
 6. Be specific about inputs and outputs
+7. Do not assume specific data schemas or column names
+8. Final export action must produce results in the order questions were asked
 
 Return ONLY valid JSON with this structure:
 {
@@ -159,7 +161,7 @@ Return ONLY valid JSON with this structure:
     {
       "action_id": "action_001",
       "type": "scrape",
-      "description": "Scrape Wikipedia film data",
+      "description": "Scrape data from specified URL",
       "parameters": {
         "url": "https://example.com",
         "target": "table"

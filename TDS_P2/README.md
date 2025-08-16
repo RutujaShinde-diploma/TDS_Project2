@@ -96,13 +96,15 @@ The main endpoint accepts POST requests with file uploads:
 ```bash
 curl -X POST "http://localhost:8000/api/" \
   -F "questions=@questions.txt" \
-  -F "data=@data.csv"
+  -F "files=@data.csv" \
+  -F "files=@image.png" \
+  -F "files=@additional_data.json"
 ```
 
 ### Request Format
 
-- `questions.txt` (required): Contains the analysis questions/tasks
-- Additional files (optional): Data files, images, etc.
+- `questions` (required): Contains the analysis questions/tasks
+- `files` (optional): Multiple data files, images, etc. Can be specified multiple times
 
 ### Response Format
 

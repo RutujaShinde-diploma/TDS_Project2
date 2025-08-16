@@ -106,10 +106,19 @@ curl -X POST "http://localhost:8000/api/" \
 ```bash
 curl -X POST "http://localhost:8000/api/" \
   -F "questions=@questions.txt" \
-  -F "data=@sample.csv"
+  -F "files=@sample.csv"
 ```
 
-### Test 3: Check Status
+### Test 3: Multiple Files
+```bash
+curl -X POST "http://localhost:8000/api/" \
+  -F "questions=@questions.txt" \
+  -F "files=@sample.csv" \
+  -F "files=@image.png" \
+  -F "files=@data.json"
+```
+
+### Test 4: Check Status
 ```bash
 curl "http://localhost:8000/api/job/{job_id}"
 ```

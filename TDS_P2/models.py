@@ -76,7 +76,7 @@ class ExecutionContext(BaseModel):
 
 class JobRequest(BaseModel):
     questions: str
-    files: List[str] = Field(default_factory=list)
+    files: List[str] = Field(default_factory=list, description="List of uploaded file names")
     output_format: str = "json"
     
 class AnalysisAnswer(BaseModel):

@@ -185,7 +185,7 @@ async def clear_plan_cache(questions: str = Form(...)):
 @app.post("/api/")
 async def analyze_data(
     questions: UploadFile = File(..., description="questions.txt file with task description"),
-    files: Optional[UploadFile] = File(default=None, description="Optional data file"),
+    files: List[UploadFile] = File(default=[], description="Optional data files"),
     bypass_cache: bool = Form(default=False, description="Bypass cache and force fresh execution")
 ):
     """
@@ -193,10 +193,13 @@ async def analyze_data(
     
     Accepts:
     - questions.txt (required): Contains the analysis questions/tasks
-    - Additional files (optional): Data files, images, etc.
+    - Additional files (optional): Multiple data files, images, etc.
     - bypass_cache (optional): Force fresh execution ignoring cache
     
     Returns answers directly in format: {"answer1": "value1", "answer2": "value2", ...}
+    
+    Example usage:
+    curl "https://app.example.com/api/" -F "questions=@questions.txt" -F "files=@image.png" -F "files=@data.csv"
     """
     start_time = time.time()
     job_id = str(uuid.uuid4())
@@ -223,15 +226,16 @@ async def analyze_data(
         # Save additional files
         uploaded_files = []
         if files:
-            if files.size > config.MAX_FILE_SIZE:
-                raise HTTPException(status_code=400, detail=f"File {files.filename} exceeds size limit")
-            
-            file_path = job_workspace / files.filename
-            async with aiofiles.open(file_path, 'wb') as f:
-                content = await files.read()
-                await f.write(content)
-            
-            uploaded_files.append(files.filename)
+            for file in files:
+                if file.size > config.MAX_FILE_SIZE:
+                    raise HTTPException(status_code=400, detail=f"File {file.filename} exceeds size limit")
+                
+                file_path = job_workspace / file.filename
+                async with aiofiles.open(file_path, 'wb') as f:
+                    content = await file.read()
+                    await f.write(content)
+                
+                uploaded_files.append(file.filename)
         
         # Create job request
         job_request = JobRequest(

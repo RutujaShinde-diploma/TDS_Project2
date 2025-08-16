@@ -11,10 +11,10 @@ def test_wiki_curl():
     url = "http://localhost:8000/api/"
     
     # Prepare files for upload (like curl -F)
-    files = {
-        'questions': ('wiki_test.txt', open('wiki_test.txt', 'rb'), 'text/plain'),
-        'files': ('', '', 'text/plain')  # Empty file for scraping
-    }
+    files = [
+        ('questions', ('wiki_test.txt', open('wiki_test.txt', 'rb'), 'text/plain')),
+        ('files', ('', '', 'text/plain'))  # Empty file for scraping
+    ]
     
     try:
         # Submit job (equivalent to curl -X POST)

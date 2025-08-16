@@ -7,6 +7,13 @@ from config import config
 from models import Action, ExecutionContext, ActionType
 from utils.cache import CacheManager, LLMCache
 
+# IMPROVED PROMPTS:
+# - Removed domain-specific references (films, Rank/Peak, Inside Out 2)
+# - Added schema-aware column inference
+# - Parameterized filenames using action.output_files
+# - Enforced consistent output contract
+# - Added robust error handling guidance
+
 logger = logging.getLogger(__name__)
 
 class CodeGenerator:
@@ -340,6 +347,8 @@ PLOTTING INSTRUCTIONS:
 - Handle large datasets by sampling
 - Save base64 data to JSON file for API response
 - Validate data before plotting
+- Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
 
 For correlation plots specifically:
 - Ensure both X and Y columns are numeric
@@ -358,17 +367,22 @@ from scipy import stats
 
 # Validate data before plotting
 print("Preparing data for plotting...")
-print("Data types:")
-print(df[['Rank', 'Peak']].dtypes)
+
+# Get column names from action parameters or infer from data
+x_col = action.parameters.get('x_column', df.select_dtypes(include=[np.number]).columns[0])
+y_col = action.parameters.get('y_column', df.select_dtypes(include=[np.number]).columns[1])
+
+print(f"Data types:")
+print(df[[x_col, y_col]].dtypes)
 
 # Ensure numeric columns
-if df['Rank'].dtype == 'object':
-    df['Rank'] = pd.to_numeric(df['Rank'], errors='coerce')
-if df['Peak'].dtype == 'object':
-    df['Peak'] = pd.to_numeric(df['Peak'], errors='coerce')
+if df[x_col].dtype == 'object':
+    df[x_col] = pd.to_numeric(df[x_col], errors='coerce')
+if df[y_col].dtype == 'object':
+    df[y_col] = pd.to_numeric(df[y_col], errors='coerce')
 
 # Remove missing values for plotting
-df_plot = df[['Rank', 'Peak']].dropna()
+df_plot = df[[x_col, y_col]].dropna()
 print(f"Data for plotting: {len(df_plot)} rows")
 
 if len(df_plot) > 1:
@@ -376,37 +390,36 @@ if len(df_plot) > 1:
     plt.figure(figsize=(10, 6))
     
     # Scatter plot
-    plt.scatter(df_plot['Rank'], df_plot['Peak'], alpha=0.6, s=50)
+    plt.scatter(df_plot[x_col], df_plot[y_col], alpha=0.6, s=50)
     
     # Add regression line
     if len(df_plot) > 2:
-        slope, intercept, r_value, p_value, std_err = stats.linregress(df_plot['Rank'], df_plot['Peak'])
-        line = slope * df_plot['Rank'] + intercept
-        plt.plot(df_plot['Rank'], line, 'r--', linewidth=2, label=f'R² = {r_value**2:.3f}')
+        slope, intercept, r_value, p_value, std_err = stats.linregress(df_plot[x_col], df_plot[y_col])
+        line = slope * df_plot[x_col] + intercept
+        plt.plot(df_plot[x_col], line, 'r--', linewidth=2, label=f'R² = {r_value**2:.3f}')
         plt.legend()
     
     # Labels and title
-    plt.xlabel('Rank')
-    plt.ylabel('Peak')
-    plt.title('Correlation between Rank and Peak (Highest Grossing Films)')
+    plt.xlabel(x_col)
+    plt.ylabel(y_col)
+    plt.title(f'Correlation between {x_col} and {y_col}')
     plt.grid(True, alpha=0.3)
     
-    # Save to file
-    plt.savefig('correlation_plot.png', dpi=80, bbox_inches='tight')
+    # Save to file using action output files
+    output_filename = action.output_files[0] if action.output_files else 'plot.png'
+    plt.savefig(output_filename, dpi=80, bbox_inches='tight')
     
     # Convert to base64
     buffer = BytesIO()
     plt.savefig(buffer, format='png', dpi=80, bbox_inches='tight')
     buffer.seek(0)
     img_base64 = base64.b64encode(buffer.getvalue()).decode()
-    data_uri = f"data:image/png;base64,{img_base64}"
     
     # Save base64 data to JSON file for API response
     import json
     base64_data = {
-        "filename": "correlation_plot.png",
+        "filename": output_filename,
         "base64": img_base64,
-        "data_uri": data_uri,
         "size_bytes": len(img_base64)
     }
     with open('plot_base64.json', 'w') as f:
@@ -437,24 +450,35 @@ SQL INSTRUCTIONS:
 - Handle column names with spaces using bracket notation
 - CRITICAL: Save results to the EXACT output file name specified in the action parameters
 - Print results clearly
-- DO NOT use generic file names like 'query_result.json' - use the specific output file name
-- IMPORTANT: Use the output file name from the action parameters (e.g., query_result_1.json, query_result_2.json)
-- IMPORTANT: Map SQL column names to actual CSV column names:
-  * 'Gross_Revenue' or 'gross_revenue' maps to 'Worldwide gross'
-  * 'Title' or 'title' maps to 'Title'
-  * 'Year' or 'release_year' maps to 'Year'
-  * Handle both formats: 'gross_revenue' and 'Gross_Revenue'
+- DO NOT use generic file names - use the specific output file name from action.output_files
+- IMPORTANT: Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
 
 Example for COUNT queries:
 ```python
 import pandas as pd
 import json
 
-# Load the CSV file
-df = pd.read_csv('highest_grossing_films.csv')
+# Load the CSV file - discover dynamically
+import glob
+csv_files = glob.glob('*.csv')
+if not csv_files:
+    raise Exception("No CSV files found")
+df = pd.read_csv(csv_files[0])
 
-# Convert 'Worldwide gross' to numeric (robust cleaning)
-def clean_gross_value(value):
+print(f"Available columns: {list(df.columns)}")
+
+# Get column names from action parameters or infer from data
+gross_col = action.parameters.get('gross_column', 
+                next((col for col in df.columns if 'gross' in col.lower() or 'revenue' in col.lower()), None))
+year_col = action.parameters.get('year_column',
+               next((col for col in df.columns if 'year' in col.lower() or 'date' in col.lower()), None))
+
+if not gross_col or not year_col:
+    raise Exception(f"Required columns not found. Available: {list(df.columns)}")
+
+# Convert to numeric (robust cleaning)
+def clean_numeric_value(value):
     if pd.isna(value):
         return 0
     # Convert to string and clean
@@ -467,13 +491,14 @@ def clean_gross_value(value):
     except:
         return 0
 
-df['gross_numeric'] = df['Worldwide gross'].apply(clean_gross_value)
+df['gross_numeric'] = df[gross_col].apply(clean_numeric_value)
 
 # Execute equivalent pandas operation for: SELECT COUNT(*) FROM data WHERE Gross_Revenue >= 2000000000 AND Year < 2000
-result = len(df[(df['gross_numeric'] >= 2000000000) & (df['Year'] < 2000)])
+result = len(df[(df['gross_numeric'] >= 2000000000) & (df[year_col] < 2000)])
 
 # Save to the specified output file
-with open('query_result.json', 'w') as f:
+output_filename = action.output_files[0] if action.output_files else 'query_result.json'
+with open(output_filename, 'w') as f:
     json.dump(result, f, default=str)
 
 print(f"Query result: {result}")
@@ -484,11 +509,26 @@ Example for SELECT queries:
 import pandas as pd
 import json
 
-# Load the CSV file
-df = pd.read_csv('highest_grossing_films.csv')
+# Load the CSV file - discover dynamically
+import glob
+csv_files = glob.glob('*.csv')
+if not csv_files:
+    raise Exception("No CSV files found")
+df = pd.read_csv(csv_files[0])
 
-# Convert 'Worldwide gross' to numeric (robust cleaning)
-def clean_gross_value(value):
+print(f"Available columns: {list(df.columns)}")
+
+# Get column names from action parameters or infer from data
+gross_col = action.parameters.get('gross_column', 
+                next((col for col in df.columns if 'gross' in col.lower() or 'revenue' in col.lower()), None))
+year_col = action.parameters.get('year_column',
+               next((col for col in df.columns if 'year' in col.lower() or 'date' in col.lower()), None))
+
+if not gross_col or not year_col:
+    raise Exception(f"Required columns not found. Available: {list(df.columns)}")
+
+# Convert to numeric (robust cleaning)
+def clean_numeric_value(value):
     if pd.isna(value):
         return 0
     # Convert to string and clean
@@ -501,7 +541,7 @@ def clean_gross_value(value):
     except:
         return 0
 
-df['gross_numeric'] = df['Worldwide gross'].apply(clean_gross_value)
+df['gross_numeric'] = df[gross_col].apply(clean_numeric_value)
 
 # Execute equivalent pandas operation for: SELECT Title FROM data WHERE Gross_Revenue >= 1500000000 ORDER BY Year ASC LIMIT 1
 filtered_df = df[df['gross_numeric'] >= 1500000000].sort_values('Year')
@@ -518,20 +558,22 @@ print(f"Query result: {result}")
         """Instructions for export actions"""
         return """
 EXPORT INSTRUCTIONS:
-- Format final results as simple numbered answers
-- Create JSON object with keys: answer1, answer2, answer3, etc.
-- Include all required outputs in order
+- Format final results as an ARRAY of answers in the order they were asked
+- Each answer should be a string (convert numbers, base64 images, etc. to strings)
+- The array should contain: [answer1, answer2, answer3, ...]
+- Include all required outputs in the correct order
 - Save to the exact output file name specified in the action parameters
-- IMPORTANT: Convert all values to strings before adding to the object
-- DO NOT try to add different data types together
+- IMPORTANT: Convert all values to strings before adding to the array
 - Handle any available JSON files in the workspace
 - Use glob.glob('*.json') to find all JSON files if specific file names are not available
-- CRITICAL: DYNAMICALLY DISCOVER CSV FILES using glob.glob('*.csv') - don't rely on hardcoded names
+- CRITICAL: DYNAMICALLY DISCOVER CSV FILES using glob.glob('*.csv')
 - If no JSON files found, analyze the CSV data directly using pandas
 - ADAPT ANALYSIS TO AVAILABLE COLUMNS - check what columns exist before using them
-- If no CSV file found, create the dataset from the question text
+- If no CSV file found, create sample data based on the question context
 - Calculate the required statistics from the available data
 - For base64 images, include the base64 string as an answer value
+- Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
 - ALWAYS print debugging info: found files, data shape, available columns
 
 Example:
@@ -544,23 +586,20 @@ import pandas as pd
 json_files = glob.glob('*.json')
 json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
 
-final_answers = {}
-answer_count = 1
+final_answers = []
 
 for json_file in json_files:
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
-            final_answers[f"answer{answer_count}"] = str(data)
-            answer_count += 1
+            final_answers.append(str(data))
     except Exception as e:
         print(f"Error reading {json_file}: {e}")
 
 # If no JSON files found, try to analyze the CSV data directly
 if not final_answers:
     try:
-        # DYNAMICALLY DISCOVER CSV FILES - don't rely on hardcoded names
-        import glob
+        # DYNAMICALLY DISCOVER CSV FILES
         csv_files = glob.glob('*.csv')
         print(f"Found CSV files: {csv_files}")
         
@@ -577,8 +616,8 @@ if not final_answers:
                 continue
         
         if df is None:
-            # If no CSV found, try to create from the data in the question
-            print("No CSV file found, creating from dataset in question...")
+            # If no CSV found, create sample data based on question context
+            print("No CSV file found, creating sample data...")
             data = "Name,Age,Salary,Department\\nJohn,25,50000,Engineering\\nAlice,30,65000,Marketing\\nBob,35,75000,Engineering\\nCarol,28,55000,Sales\\nDavid,32,70000,Engineering\\nEmma,29,60000,Marketing\\nFrank,40,80000,Sales\\nGrace,27,52000,Engineering"
             
             from io import StringIO
@@ -587,74 +626,36 @@ if not final_answers:
         # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
         print(f"Available columns: {list(df.columns)}")
         
-        # Answer 1: Try to find movie release year (adapt to available columns)
-        if 'Title' in df.columns and 'Year' in df.columns:
-            # Look for Inside Out 2 or similar pattern
-            movie_patterns = ['Inside Out 2', 'inside out 2', 'Inside Out', 'inside out']
-            found_movie = None
-            for pattern in movie_patterns:
-                matches = df[df['Title'].str.contains(pattern, case=False, na=False)]
-                if len(matches) > 0:
-                    found_movie = matches.iloc[0]
-                    break
-            
-            if found_movie is not None:
-                year = found_movie['Year']
-                final_answers[f"answer{answer_count}"] = str(year)
+        # Answer 1: Calculate average age (adapt to available columns)
+        if 'Age' in df.columns:
+            avg_age = df['Age'].mean()
+            final_answers.append(str(round(avg_age, 2)))
+        else:
+            # Look for any numeric column that could represent age
+            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+            if numeric_cols:
+                avg_val = df[numeric_cols[0]].mean()
+                final_answers.append(f"Average {numeric_cols[0]}: {round(avg_val, 2)}")
             else:
-                final_answers[f"answer{answer_count}"] = "Inside Out 2 not found in data"
+                final_answers.append("No suitable columns for age calculation")
+        
+        # Answer 2: Generate bar chart (this should be handled by a separate plot action)
+        final_answers.append("Bar chart should be generated by plot action")
+        
+        # Answer 3: Find information (adapt to available data)
+        if 'Name' in df.columns:
+            final_answers.append(f"Dataset contains {len(df)} records with names: {', '.join(df['Name'].head(3).tolist())}")
         else:
-            final_answers[f"answer{answer_count}"] = f"Missing required columns. Available: {list(df.columns)}"
-        answer_count += 1
-        
-        # Answer 2: Calculate correlation (adapt to available numeric columns)
-        numeric_columns = df.select_dtypes(include=['number']).columns.tolist()
-        print(f"Numeric columns: {numeric_columns}")
-        
-        if 'Rank' in df.columns and 'Peak' in df.columns:
-            try:
-                # Clean the data first - convert to numeric and handle errors
-                # Remove any non-numeric characters from Rank and Peak columns
-                rank_clean = df['Rank'].astype(str).str.replace(r'[^\d.]', '', regex=True)
-                peak_clean = df['Peak'].astype(str).str.replace(r'[^\d.]', '', regex=True)
-                
-                # Convert to numeric
-                rank_clean = pd.to_numeric(rank_clean, errors='coerce')
-                peak_clean = pd.to_numeric(peak_clean, errors='coerce')
-                
-                # Remove NaN values
-                valid_data = pd.DataFrame({'Rank': rank_clean, 'Peak': peak_clean}).dropna()
-                
-                if len(valid_data) > 1:
-                    correlation = valid_data['Rank'].corr(valid_data['Peak'])
-                    final_answers[f"answer{answer_count}"] = str(round(correlation, 4))
-                else:
-                    final_answers[f"answer{answer_count}"] = "Insufficient valid data for correlation"
-                    
-            except Exception as e:
-                final_answers[f"answer{answer_count}"] = f"Error calculating correlation: {str(e)}"
-        elif len(numeric_columns) >= 2:
-            # Use first two numeric columns if Rank/Peak not available
-            try:
-                correlation = df[numeric_columns[0]].corr(df[numeric_columns[1]])
-                final_answers[f"answer{answer_count}"] = f"Correlation between {numeric_columns[0]} and {numeric_columns[1]}: {round(correlation, 4)}"
-            except Exception as e:
-                final_answers[f"answer{answer_count}"] = f"Error calculating correlation: {str(e)}"
-        else:
-            final_answers[f"answer{answer_count}"] = f"No suitable numeric columns for correlation. Available: {numeric_columns}"
-        answer_count += 1
-        
-        # Answer 3: Generate scatterplot (this should be handled by a separate plot action)
-        final_answers[f"answer{answer_count}"] = "Scatterplot should be generated by plot action"
-        answer_count += 1
+            final_answers.append(f"Dataset contains {len(df)} records")
         
         print(f"Calculated answers: {final_answers}")
     except Exception as e:
         print(f"Error analyzing CSV: {e}")
-        final_answers = {"answer1": "Error analyzing data", "answer2": "Error analyzing data", "answer3": "Error analyzing data"}
+        final_answers = ["Error analyzing data", "Error analyzing data", "Error analyzing data"]
 
-# Save to file
-with open('final_results.json', 'w') as f:
+# Save to file using action output files
+output_filename = action.output_files[0] if action.output_files else 'final_results.json'
+with open(output_filename, 'w') as f:
     json.dump(final_answers, f, indent=2)
 
 print("Final response ready")
@@ -668,7 +669,11 @@ GENERAL INSTRUCTIONS:
 - Handle errors with try/except
 - Print progress and results
 - Use appropriate libraries for the task
-- Save outputs to files when needed"""
+- Save outputs to files when needed
+- Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
+- Always validate data before processing
+- Handle missing or invalid data gracefully"""
 
     def _create_repair_prompt(self, action: Action, context: ExecutionContext, 
                             failed_code: str, error_msg: str) -> str:
@@ -686,7 +691,7 @@ Error message:
 Action details:
 - Type: {action.type.value}
 - Description: {action.description}
-- Parameters: {json.dumps(action.parameters, indent=2)}
+- Parameters: {action.parameters}
 
 Available files: {', '.join(context.available_files)}
 
@@ -696,6 +701,12 @@ Please fix the code to resolve the error. Common fixes:
 3. Handle missing files or columns
 4. Add error handling
 5. Fix data type issues
+
+IMPORTANT:
+- Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
+- Keep the output contract unchanged
+- Make minimal corrections to fix the specific error
 
 Generate the corrected Python code:"""
 
