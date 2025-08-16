@@ -39,29 +39,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Request logging middleware - TEMPORARILY DISABLED due to hanging issues
-# @app.middleware("http")
-# async def log_requests(request: Request, call_next):
-#     """Log all incoming requests for debugging"""
-#     logger.info(f"Incoming {request.method} request to {request.url}")
-#     logger.info(f"Headers: {dict(request.headers)}")
-#     
-#     # Log form data for POST requests
-#     if request.method == "POST":
-#         try:
-#             form_data = await request.form()
-#             logger.info(f"Form data keys: {list(form_data.keys())}")
-#             for key, value in form_data.items():
-#                 if hasattr(value, 'filename'):
-#                     logger.info(f"File field '{key}': filename={value.filename}, size={value.size}")
-#                 else:
-#                     logger.info(f"Form field '{key}': {value}")
-#         except Exception as e:
-#             logger.warning(f"Could not parse form data: {e}")
-#     
-#     response = await call_next(request)
-#     logger.info(f"Response status: {response.status_code}")
-#     return response
+# Request logging middleware - ENABLED for debugging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all incoming requests for debugging"""
+    logger.info(f"=== INCOMING REQUEST DEBUG ===")
+    logger.info(f"Method: {request.method}")
+    logger.info(f"URL: {request.url}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    
+    # Log form data for POST requests
+    if request.method == "POST":
+        try:
+            form_data = await request.form()
+            logger.info(f"Form data keys: {list(form_data.keys())}")
+            for key, value in form_data.items():
+                if hasattr(value, 'filename'):
+                    logger.info(f"File field '{key}': filename={value.filename}, size={value.size}")
+                else:
+                    logger.info(f"Form field '{key}': {value}")
+        except Exception as e:
+            logger.warning(f"Could not parse form data: {e}")
+    
+    response = await call_next(request)
+    logger.info(f"Response status: {response.status_code}")
+    logger.info(f"=== END REQUEST DEBUG ===")
+    return response
 
 # Initialize components
 planner = PlannerModule()
@@ -228,6 +231,7 @@ async def clear_plan_cache(questions: str = Form(...)):
 
 @app.post("/api/")
 async def analyze_data(
+    request: Request,
     questions: UploadFile = File(..., description="questions.txt file with task description"),
     files: List[UploadFile] = File(default=[], description="Optional data files"),
     bypass_cache: bool = Form(default=False, description="Bypass cache and force fresh execution")
@@ -251,12 +255,20 @@ async def analyze_data(
     logger.info(f"Starting job {job_id} (bypass_cache: {bypass_cache})")
     
     try:
-        # Debug logging for file upload
-        logger.info(f"Received request - questions filename: {questions.filename if questions else 'None'}")
+        # Enhanced debug logging for file upload
+        logger.info(f"=== FILE UPLOAD DEBUG ===")
+        logger.info(f"Questions file object: {questions}")
+        logger.info(f"Questions filename: {questions.filename if questions else 'None'}")
         logger.info(f"Questions file size: {questions.size if questions else 'None'}")
+        logger.info(f"Questions content type: {questions.content_type if questions else 'None'}")
+        
+        # Log all request details
+        logger.info(f"Request method: {request.method if 'request' in locals() else 'Unknown'}")
+        logger.info(f"Request URL: {request.url if 'request' in locals() else 'Unknown'}")
         
         # Validate questions file
         if not questions.filename or not questions.filename.endswith('.txt'):
+            logger.error(f"Invalid questions file: {questions.filename}")
             raise HTTPException(status_code=400, detail="questions file must be a .txt file")
         
         # Create job workspace
