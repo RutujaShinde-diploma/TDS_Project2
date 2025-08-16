@@ -23,7 +23,7 @@
 [evaluatorTracing.js:111] [EvaluatorTracing] Tracing not enabled or OTLP HTTP receiver not configured
 [evaluatorTracing.js:112] [EvaluatorTracing] tracing.enabled: undefined
 [evaluatorTracing.js:113] [EvaluatorTracing] tracing.otlp.http.enabled: undefined
-[evaluator.js:711] Starting evaluation eval-oSN-2025-08-16T17:37:42
+[evaluator.js:711] Starting evaluation eval-yNj-2025-08-16T19:14:19
 [evaluator.js:1279] Running 1 test cases (up to 4 at a time)...
 [evaluatorHelpers.js:161] Loading var question from file: /home/usr_22f3002542_ds_study_iitm_ac_/tds-05-2025-p2-evals/promptfoos/project-data-analyst-agent-sample-network/questions.txt
 [evaluator.js:395] Provider type: exec: uv run run.py "https://tds-data-analyst-agent-9eb3.onrender.com/api/"
@@ -36,33 +36,65 @@
 [pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
 [pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
 [pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
-[pythonUtils.js:134] Importing module temp-python-code-1755365862490-8fb498bf0daa6 from /tmp ...
+[pythonUtils.js:134] Importing module temp-python-code-1755371660463-799e0038bd00d from /tmp ...
 [pythonUtils.js:137] Traceback (most recent call last):
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
     result = call_method(script_path, method_name, *data)
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
     return method_to_call(*args)
-  File "/tmp/temp-python-code-1755365862490-8fb498bf0daa6.py", line 4, in main
+  File "/tmp/temp-python-code-1755371660463-799e0038bd00d.py", line 4, in main
     if output["highest_degree_node"].lower() == "bob" :
        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 KeyError: 'highest_degree_node'
-[pythonUtils.js:134] Importing module temp-python-code-1755365862486-b491cd9e6e83 from /tmp ...
+[pythonUtils.js:168] Error running Python script: KeyError: 'highest_degree_node'
+Stack Trace: Error: KeyError: 'highest_degree_node'
+    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
+    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
+    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
+    at ChildProcess.emit (node:events:518:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    --Python Traceback: --
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+      result = call_method(script_path, method_name, *data)
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
+      return method_to_call(*args)
+    File "/tmp/temp-python-code-1755371660463-799e0038bd00d.py", line 4, in main
+      if output["highest_degree_node"].lower() == "bob" :
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755371660463-6df3b62e06886.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755371660463-6df3b62e06886.json'
+[wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'highest_degree_node'
+Stack Trace: Error: KeyError: 'highest_degree_node'
+    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
+    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
+    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
+    at ChildProcess.emit (node:events:518:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    --Python Traceback: --
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+      result = call_method(script_path, method_name, *data)
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
+      return method_to_call(*args)
+    File "/tmp/temp-python-code-1755371660463-799e0038bd00d.py", line 4, in main
+      if output["highest_degree_node"].lower() == "bob" :
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+[pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
+[pythonUtils.js:134] Importing module temp-python-code-1755371660459-da6420f055cf4 from /tmp ...
 [pythonUtils.js:137] Traceback (most recent call last):
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
     result = call_method(script_path, method_name, *data)
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
     return method_to_call(*args)
-  File "/tmp/temp-python-code-1755365862486-b491cd9e6e83.py", line 4, in main
+  File "/tmp/temp-python-code-1755371660459-da6420f055cf4.py", line 4, in main
     if output["edge_count"] == 7 :
        ~~~~~~^^^^^^^^^^^^^^
 KeyError: 'edge_count'
-[pythonUtils.js:134] Importing module temp-python-code-1755365862491-c59aa214363b5 from /tmp ...
+[pythonUtils.js:134] Importing module temp-python-code-1755371660464-a47f6f95c4436 from /tmp ...
 [pythonUtils.js:137] Traceback (most recent call last):
-  File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+[pythonUtils.js:137] File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
     result = call_method(script_path, method_name, *data)
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
     return method_to_call(*args)
-  File "/tmp/temp-python-code-1755365862491-c59aa214363b5.py", line 4, in main
+  File "/tmp/temp-python-code-1755371660464-a47f6f95c4436.py", line 4, in main
     val = float(output["average_degree"])
                 ~~~~~~^^^^^^^^^^^^^^^^^^
 KeyError: 'average_degree'
@@ -78,10 +110,10 @@ Stack Trace: Error: KeyError: 'edge_count'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862486-b491cd9e6e83.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660459-da6420f055cf4.py", line 4, in main
       if output["edge_count"] == 7 :
          ~~~~~~^^^^^^^^^^^^^^
-[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755365862486-e2d780c94756.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755365862486-e2d780c94756.json'
+[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755371660459-d4c4037f494fd.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755371660459-d4c4037f494fd.json'
 [wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'edge_count'
 Stack Trace: Error: KeyError: 'edge_count'
     at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
@@ -94,41 +126,9 @@ Stack Trace: Error: KeyError: 'edge_count'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862486-b491cd9e6e83.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660459-da6420f055cf4.py", line 4, in main
       if output["edge_count"] == 7 :
          ~~~~~~^^^^^^^^^^^^^^
-[pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
-[pythonUtils.js:168] Error running Python script: KeyError: 'highest_degree_node'
-Stack Trace: Error: KeyError: 'highest_degree_node'
-    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
-    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
-    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
-    at ChildProcess.emit (node:events:518:28)
-    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
-    --Python Traceback: --
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
-      result = call_method(script_path, method_name, *data)
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
-      return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862490-8fb498bf0daa6.py", line 4, in main
-      if output["highest_degree_node"].lower() == "bob" :
-         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
-[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755365862490-c63122806a07e.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755365862490-c63122806a07e.json'
-[wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'highest_degree_node'
-Stack Trace: Error: KeyError: 'highest_degree_node'
-    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
-    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
-    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
-    at ChildProcess.emit (node:events:518:28)
-    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
-    --Python Traceback: --
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
-      result = call_method(script_path, method_name, *data)
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
-      return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862490-8fb498bf0daa6.py", line 4, in main
-      if output["highest_degree_node"].lower() == "bob" :
-         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 [pythonUtils.js:129] Running Python wrapper with args: [{"detail":[{"type":"missing","loc":["body","questions"],"msg":"Field required","input":null,"url":"https://errors.pydantic.dev/2.5/v/missing"}]},{"prompt":"","vars":{"question":"Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG."},"test":{"assert":[{"type":"is-json","value":{"type":"object","required":["edge_count","highest_degree_node","average_degree","density","shortest_path_alice_eve","network_graph","degree_histogram"],"properties":{"edge_count":{"type":"number"},"highest_degree_node":{"type":"string"},"average_degree":{"type":"number"},"density":{"type":"number"},"shortest_path_alice_eve":{"type":"number"},"network_graph":{"type":"string"},"degree_histogram":{"type":"string"}}}},{"type":"python","weight":3,"value":"if output[\"edge_count\"] == 7 :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"highest_degree_node\"].lower() == \"bob\" :\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"average_degree\"])\nif abs(val - 2.8) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"val = float(output[\"density\"])\nif abs(val - 0.7) <= 0.001:\n  return True\nreturn False\n"},{"type":"python","weight":3,"value":"if output[\"shortest_path_alice_eve\"] == 2:\n  return True\nreturn False\n"},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"network_graph\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99},{"type":"llm-rubric","weight":8,"rubricPrompt":"[\n  {\"role\":\"system\",\"content\":\"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"degree_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n","threshold":0.99}],"options":{"provider":{"id":"openai:gpt-4.1-nano"},"transform":"JSON.parse(output)"},"metadata":{}},"provider":{"scriptPath":" uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","options":{"config":{"basePath":"promptfoos/project-data-analyst-agent-sample-network"},"env":{}},"delay":0,"label":""},"providerResponse":{}}]
 [pythonUtils.js:168] Error running Python script: KeyError: 'average_degree'
 Stack Trace: Error: KeyError: 'average_degree'
@@ -142,10 +142,10 @@ Stack Trace: Error: KeyError: 'average_degree'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862491-c59aa214363b5.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660464-a47f6f95c4436.py", line 4, in main
       val = float(output["average_degree"])
                   ~~~~~~^^^^^^^^^^^^^^^^^^
-[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755365862491-2d69f88052f69.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755365862491-2d69f88052f69.json'
+[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755371660464-ceffb340cd175.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755371660464-ceffb340cd175.json'
 [wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'average_degree'
 Stack Trace: Error: KeyError: 'average_degree'
     at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
@@ -158,64 +158,21 @@ Stack Trace: Error: KeyError: 'average_degree'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862491-c59aa214363b5.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660464-a47f6f95c4436.py", line 4, in main
       val = float(output["average_degree"])
                   ~~~~~~^^^^^^^^^^^^^^^^^^
 [defaults.js:135] Using OpenAI default providers
 [chat.js:263] Calling https://api.openai.com/v1 API: {"model":"gpt-4.1-nano","messages":[{"role":"system","content":"Grade the network graph. Score 1 only if (a) nodes Alice, Bob, Carol, David, Eve are labelled; (b) edges match edges.csv; (c) layout is clear; (d) file size < 100 kB. Respond JSON {nodes:bool,edges:bool,layout:bool,size:bool,score:number}"},{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,"}},{"type":"text","text":""}]}],"max_tokens":1024}
-[pythonUtils.js:134] Importing module temp-python-code-1755365862621-856632cc99aef from /tmp ...
-[pythonUtils.js:137] Traceback (most recent call last):
-  File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
-    result = call_method(script_path, method_name, *data)
-[pythonUtils.js:137] File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
-    return method_to_call(*args)
-  File "/tmp/temp-python-code-1755365862621-856632cc99aef.py", line 4, in main
-    if output["shortest_path_alice_eve"] == 2:
-       ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
-KeyError: 'shortest_path_alice_eve'
-[pythonUtils.js:134] Importing module temp-python-code-1755365862612-bf783e759726e from /tmp ...
+[pythonUtils.js:134] Importing module temp-python-code-1755371660560-da9aefbd067d8 from /tmp ...
 [pythonUtils.js:137] Traceback (most recent call last):
 [pythonUtils.js:137] File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
     result = call_method(script_path, method_name, *data)
   File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
     return method_to_call(*args)
-  File "/tmp/temp-python-code-1755365862612-bf783e759726e.py", line 4, in main
+  File "/tmp/temp-python-code-1755371660560-da9aefbd067d8.py", line 4, in main
     val = float(output["density"])
                 ~~~~~~^^^^^^^^^^^
 KeyError: 'density'
-[pythonUtils.js:168] Error running Python script: KeyError: 'shortest_path_alice_eve'
-Stack Trace: Error: KeyError: 'shortest_path_alice_eve'
-    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
-    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
-    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
-    at ChildProcess.emit (node:events:518:28)
-    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
-    --Python Traceback: --
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
-      result = call_method(script_path, method_name, *data)
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
-      return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862621-856632cc99aef.py", line 4, in main
-      if output["shortest_path_alice_eve"] == 2:
-         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755365862621-cd5b7b04196d7.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755365862621-cd5b7b04196d7.json'
-[wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'shortest_path_alice_eve'
-Stack Trace: Error: KeyError: 'shortest_path_alice_eve'
-    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
-    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
-    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
-    at ChildProcess.emit (node:events:518:28)
-    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
-    --Python Traceback: --
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
-      result = call_method(script_path, method_name, *data)
-    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
-      return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862621-856632cc99aef.py", line 4, in main
-      if output["shortest_path_alice_eve"] == 2:
-         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
-[defaults.js:135] Using OpenAI default providers
-[chat.js:263] Calling https://api.openai.com/v1 API: {"model":"gpt-4.1-nano","messages":[{"role":"system","content":"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}"},{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,"}},{"type":"text","text":""}]}],"max_tokens":1024}
 [pythonUtils.js:168] Error running Python script: KeyError: 'density'
 Stack Trace: Error: KeyError: 'density'
     at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
@@ -228,10 +185,10 @@ Stack Trace: Error: KeyError: 'density'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862612-bf783e759726e.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660560-da9aefbd067d8.py", line 4, in main
       val = float(output["density"])
                   ~~~~~~^^^^^^^^^^^
-[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755365862613-3827c0b8a530a.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755365862613-3827c0b8a530a.json'
+[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755371660560-f238866ff3164.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755371660560-f238866ff3164.json'
 [wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'density'
 Stack Trace: Error: KeyError: 'density'
     at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
@@ -244,25 +201,68 @@ Stack Trace: Error: KeyError: 'density'
       result = call_method(script_path, method_name, *data)
     File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
       return method_to_call(*args)
-    File "/tmp/temp-python-code-1755365862612-bf783e759726e.py", line 4, in main
+    File "/tmp/temp-python-code-1755371660560-da9aefbd067d8.py", line 4, in main
       val = float(output["density"])
                   ~~~~~~^^^^^^^^^^^
+[defaults.js:135] Using OpenAI default providers
+[chat.js:263] Calling https://api.openai.com/v1 API: {"model":"gpt-4.1-nano","messages":[{"role":"system","content":"Grade the degree histogram. Score 1 only if (a) bar chart of node degree counts; (b) bars are green; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {bars:bool,color:bool,axes:bool,size:bool,score:number}"},{"role":"user","content":[{"type":"image_url","image_url":{"url":"data:image/png;base64,"}},{"type":"text","text":""}]}],"max_tokens":1024}
+[pythonUtils.js:134] Importing module temp-python-code-1755371660587-80edc0db1d605 from /tmp ...
+[pythonUtils.js:137] Traceback (most recent call last):
+  File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+    result = call_method(script_path, method_name, *data)
+  File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
+    return method_to_call(*args)
+  File "/tmp/temp-python-code-1755371660587-80edc0db1d605.py", line 4, in main
+    if output["shortest_path_alice_eve"] == 2:
+       ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'shortest_path_alice_eve'
+[pythonUtils.js:168] Error running Python script: KeyError: 'shortest_path_alice_eve'
+Stack Trace: Error: KeyError: 'shortest_path_alice_eve'
+    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
+    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
+    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
+    at ChildProcess.emit (node:events:518:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    --Python Traceback: --
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+      result = call_method(script_path, method_name, *data)
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
+      return method_to_call(*args)
+    File "/tmp/temp-python-code-1755371660587-80edc0db1d605.py", line 4, in main
+      if output["shortest_path_alice_eve"] == 2:
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[pythonUtils.js:179] Error removing /tmp/promptfoo-python-output-json-1755371660587-8e81ff8ab8b3f.json: Error: ENOENT: no such file or directory, unlink '/tmp/promptfoo-python-output-json-1755371660587-8e81ff8ab8b3f.json'
+[wrapper.js:28] Error executing Python code: Error: Error running Python script: KeyError: 'shortest_path_alice_eve'
+Stack Trace: Error: KeyError: 'shortest_path_alice_eve'
+    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)
+    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)
+    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)
+    at ChildProcess.emit (node:events:518:28)
+    at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+    --Python Traceback: --
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 39, in <module>
+      result = call_method(script_path, method_name, *data)
+    File "/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py", line 28, in call_method
+      return method_to_call(*args)
+    File "/tmp/temp-python-code-1755371660587-80edc0db1d605.py", line 4, in main
+      if output["shortest_path_alice_eve"] == 2:
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [signal.js:20] Writing to signal file /home/usr_22f3002542_ds_study_iitm_ac_/.promptfoo/evalLastWritten
 [signal.js:22] Successfully wrote to signal file
 [evaluator.js:1245] Eval #1 complete (1 of 1)
 [signal.js:20] Writing to signal file /home/usr_22f3002542_ds_study_iitm_ac_/.promptfoo/evalLastWritten
 [signal.js:22] Successfully wrote to signal file
 [eval.js:308] At least one evaluation failure occurred. This might be caused by the underlying call to the provider, or a test failure. Context: 
-[{"raw":"{{prompt}}","label":"{{prompt}}","id":"effa18501e44aafd9bc42a2f64ffc9b6350f94025520ca2ed382f9bdc4b6e982","provider":"exec: uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","metrics":{"score":0,"testPassCount":0,"testFailCount":1,"testErrorCount":0,"assertPassCount":0,"assertFailCount":8,"totalLatencyMs":380,"tokenUsage":{"prompt":0,"completion":0,"cached":0,"total":0,"numRequests":1,"completionDetails":{"reasoning":0,"acceptedPrediction":0,"rejectedPrediction":0},"assertions":{"total":0,"prompt":0,"completion":0,"cached":0,"numRequests":0,"completionDetails":{"reasoning":0,"acceptedPrediction":0,"rejectedPrediction":0}}},"namedScores":{},"namedScoresCount":{},"cost":0}}]
-[eval.js:318] Writing output to evaluation_logs/24ds3000044@ds.study.iitm.ac.in/3/project-data-analyst-agent-sample-network/output.json
+[{"raw":"{{prompt}}","label":"{{prompt}}","id":"effa18501e44aafd9bc42a2f64ffc9b6350f94025520ca2ed382f9bdc4b6e982","provider":"exec: uv run run.py \"https://tds-data-analyst-agent-9eb3.onrender.com/api/\"","metrics":{"score":0,"testPassCount":0,"testFailCount":1,"testErrorCount":0,"assertPassCount":0,"assertFailCount":8,"totalLatencyMs":923,"tokenUsage":{"prompt":0,"completion":0,"cached":0,"total":0,"numRequests":1,"completionDetails":{"reasoning":0,"acceptedPrediction":0,"rejectedPrediction":0},"assertions":{"total":0,"prompt":0,"completion":0,"cached":0,"numRequests":0,"completionDetails":{"reasoning":0,"acceptedPrediction":0,"rejectedPrediction":0}}},"namedScores":{},"namedScoresCount":{},"cost":0}}]
+[eval.js:318] Writing output to evaluation_logs/24ds3000044@ds.study.iitm.ac.in/4/project-data-analyst-agent-sample-network/output.json
 [index.js:284] ========================================================================================================================
-[eval.js:329] ✔ Evaluation complete. ID: eval-oSN-2025-08-16T17:37:42
+[eval.js:329] ✔ Evaluation complete. ID: eval-yNj-2025-08-16T19:14:19
 
 [eval.js:330] » Run promptfoo view to use the local web viewer
 [eval.js:335] » Do you want to share this with your team? Sign up for free at https://promptfoo.app
 [eval.js:337] » This project needs your feedback. What's one thing we can improve? https://promptfoo.dev/feedback
 [index.js:284] ========================================================================================================================
-[eval.js:437] Duration: 1s (concurrency: 4)
+[eval.js:437] Duration: 2s (concurrency: 4)
 [eval.js:438] Successes: 0
 [eval.js:439] Failures: 1
 [eval.js:441] Errors: 0

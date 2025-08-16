@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-oSN-2025-08-16T17:37:42",
+  "evalId": "eval-yNj-2025-08-16T19:14:19",
   "results": {
     "version": 3,
-    "timestamp": "2025-08-16T17:37:42.055Z",
+    "timestamp": "2025-08-16T19:14:19.480Z",
     "prompts": [
       {
         "raw": "{{prompt}}",
@@ -16,7 +16,7 @@
           "testErrorCount": 0,
           "assertPassCount": 0,
           "assertFailCount": 8,
-          "totalLatencyMs": 380,
+          "totalLatencyMs": 923,
           "tokenUsage": {
             "prompt": 0,
             "completion": 0,
@@ -110,7 +110,7 @@
             {
               "pass": false,
               "score": 0,
-              "reason": "Python code execution failed: Error running Python script: KeyError: 'edge_count'\nStack Trace: Error: KeyError: 'edge_count'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755365862486-b491cd9e6e83.py\", line 4, in main\n      if output[\"edge_count\"] == 7 :\n         ~~~~~~^^^^^^^^^^^^^^",
+              "reason": "Python code execution failed: Error running Python script: KeyError: 'edge_count'\nStack Trace: Error: KeyError: 'edge_count'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755371660459-da6420f055cf4.py\", line 4, in main\n      if output[\"edge_count\"] == 7 :\n         ~~~~~~^^^^^^^^^^^^^^",
               "assertion": {
                 "type": "python",
                 "weight": 3,
@@ -120,7 +120,7 @@
             {
               "pass": false,
               "score": 0,
-              "reason": "Python code execution failed: Error running Python script: KeyError: 'highest_degree_node'\nStack Trace: Error: KeyError: 'highest_degree_node'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755365862490-8fb498bf0daa6.py\", line 4, in main\n      if output[\"highest_degree_node\"].lower() == \"bob\" :\n         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^",
+              "reason": "Python code execution failed: Error running Python script: KeyError: 'highest_degree_node'\nStack Trace: Error: KeyError: 'highest_degree_node'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755371660463-799e0038bd00d.py\", line 4, in main\n      if output[\"highest_degree_node\"].lower() == \"bob\" :\n         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^",
               "assertion": {
                 "type": "python",
                 "weight": 3,
@@ -130,7 +130,7 @@
             {
               "pass": false,
               "score": 0,
-              "reason": "Python code execution failed: Error running Python script: KeyError: 'average_degree'\nStack Trace: Error: KeyError: 'average_degree'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755365862491-c59aa214363b5.py\", line 4, in main\n      val = float(output[\"average_degree\"])\n                  ~~~~~~^^^^^^^^^^^^^^^^^^",
+              "reason": "Python code execution failed: Error running Python script: KeyError: 'average_degree'\nStack Trace: Error: KeyError: 'average_degree'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755371660464-a47f6f95c4436.py\", line 4, in main\n      val = float(output[\"average_degree\"])\n                  ~~~~~~^^^^^^^^^^^^^^^^^^",
               "assertion": {
                 "type": "python",
                 "weight": 3,
@@ -140,7 +140,7 @@
             {
               "pass": false,
               "score": 0,
-              "reason": "Python code execution failed: Error running Python script: KeyError: 'density'\nStack Trace: Error: KeyError: 'density'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755365862612-bf783e759726e.py\", line 4, in main\n      val = float(output[\"density\"])\n                  ~~~~~~^^^^^^^^^^^",
+              "reason": "Python code execution failed: Error running Python script: KeyError: 'density'\nStack Trace: Error: KeyError: 'density'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755371660560-da9aefbd067d8.py\", line 4, in main\n      val = float(output[\"density\"])\n                  ~~~~~~^^^^^^^^^^^",
               "assertion": {
                 "type": "python",
                 "weight": 3,
@@ -150,7 +150,7 @@
             {
               "pass": false,
               "score": 0,
-              "reason": "Python code execution failed: Error running Python script: KeyError: 'shortest_path_alice_eve'\nStack Trace: Error: KeyError: 'shortest_path_alice_eve'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755365862621-856632cc99aef.py\", line 4, in main\n      if output[\"shortest_path_alice_eve\"] == 2:\n         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+              "reason": "Python code execution failed: Error running Python script: KeyError: 'shortest_path_alice_eve'\nStack Trace: Error: KeyError: 'shortest_path_alice_eve'\n    at PythonShell.parseError (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:303:21)\n    at terminateIfNeeded (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:193:32)\n    at ChildProcess.<anonymous> (/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/node_modules/python-shell/index.js:185:13)\n    at ChildProcess.emit (node:events:518:28)\n    at ChildProcess._handle.onexit (node:internal/child_process:293:12)\n    --Python Traceback: --\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 39, in <module>\n      result = call_method(script_path, method_name, *data)\n    File \"/home/usr_22f3002542_ds_study_iitm_ac_/.nvm/versions/node/v22.16.0/lib/node_modules/promptfoo/dist/src/python/wrapper.py\", line 28, in call_method\n      return method_to_call(*args)\n    File \"/tmp/temp-python-code-1755371660587-80edc0db1d605.py\", line 4, in main\n      if output[\"shortest_path_alice_eve\"] == 2:\n         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^",
               "assertion": {
                 "type": "python",
                 "weight": 3,
@@ -184,8 +184,8 @@
           ],
           "assertion": null
         },
-        "id": "4688eaf7-f963-40cd-9c95-50075f197469",
-        "latencyMs": 380,
+        "id": "c8818e69-1fc5-407a-b57a-a00aac2442d8",
+        "latencyMs": 923,
         "namedScores": {},
         "prompt": {
           "raw": "",
@@ -456,7 +456,7 @@
       "metadata": {}
     },
     "outputPath": [
-      "evaluation_logs/24ds3000044@ds.study.iitm.ac.in/3/project-data-analyst-agent-sample-network/output.json"
+      "evaluation_logs/24ds3000044@ds.study.iitm.ac.in/4/project-data-analyst-agent-sample-network/output.json"
     ],
     "extensions": [],
     "metadata": {}
@@ -467,7 +467,7 @@
     "nodeVersion": "v22.16.0",
     "platform": "linux",
     "arch": "x64",
-    "exportedAt": "2025-08-16T17:37:43.220Z",
-    "evaluationCreatedAt": "2025-08-16T17:37:42.055Z"
+    "exportedAt": "2025-08-16T19:14:21.043Z",
+    "evaluationCreatedAt": "2025-08-16T19:14:19.480Z"
   }
 }
