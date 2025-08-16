@@ -440,6 +440,7 @@ Please provide clear, concise answers to each question with calculations. Do not
                     files.append(item.name)
             return files
         except Exception:
+            return []
     
     def _clean_llm_analysis(self, analysis_text: str) -> str:
         """Clean and format LLM analysis results"""
@@ -480,7 +481,6 @@ Please provide clear, concise answers to each question with calculations. Do not
         except Exception as e:
             logger.warning(f"Failed to clean LLM analysis: {e}")
             return analysis_text  # Return original if cleaning fails
-            return []
     
     def _parse_to_simple_answers(self, results: List[str]) -> Optional[Dict[str, str]]:
         """Parse raw results into simple numbered answers"""
