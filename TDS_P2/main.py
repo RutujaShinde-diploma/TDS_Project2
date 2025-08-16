@@ -232,7 +232,8 @@ async def clear_plan_cache(questions: str = Form(...)):
 @app.post("/api/")
 async def analyze_data(
     request: Request,
-    questions: UploadFile = File(..., description="questions.txt file with task description"),
+    questions: UploadFile = File(None, description="questions.txt file with task description"),
+    questions_txt: UploadFile = File(None, description="Alternative field name for questions.txt"),
     files: List[UploadFile] = File(default=[], description="Optional data files"),
     bypass_cache: bool = Form(default=False, description="Bypass cache and force fresh execution")
 ):
@@ -255,20 +256,28 @@ async def analyze_data(
     logger.info(f"Starting job {job_id} (bypass_cache: {bypass_cache})")
     
     try:
+        # Handle both field names for questions file
+        questions_file = questions or questions_txt
+        
         # Enhanced debug logging for file upload
         logger.info(f"=== FILE UPLOAD DEBUG ===")
-        logger.info(f"Questions file object: {questions}")
-        logger.info(f"Questions filename: {questions.filename if questions else 'None'}")
-        logger.info(f"Questions file size: {questions.size if questions else 'None'}")
-        logger.info(f"Questions content type: {questions.content_type if questions else 'None'}")
+        logger.info(f"Questions field received: {'questions' if questions else 'questions_txt' if questions_txt else 'None'}")
+        logger.info(f"Questions file object: {questions_file}")
+        logger.info(f"Questions filename: {questions_file.filename if questions_file else 'None'}")
+        logger.info(f"Questions file size: {questions_file.size if questions_file else 'None'}")
+        logger.info(f"Questions content type: {questions_file.content_type if questions_file else 'None'}")
         
         # Log all request details
         logger.info(f"Request method: {request.method if 'request' in locals() else 'Unknown'}")
         logger.info(f"Request URL: {request.url if 'request' in locals() else 'Unknown'}")
         
+        # Validate that questions file was actually received
+        if not questions_file:
+            raise HTTPException(status_code=400, detail="No questions file received. Please send a file with field name 'questions' or 'questions_txt'")
+        
         # Validate questions file
-        if not questions.filename or not questions.filename.endswith('.txt'):
-            logger.error(f"Invalid questions file: {questions.filename}")
+        if not questions_file.filename or not questions_file.filename.endswith('.txt'):
+            logger.error(f"Invalid questions file: {questions_file.filename}")
             raise HTTPException(status_code=400, detail="questions file must be a .txt file")
         
         # Create job workspace
@@ -277,7 +286,7 @@ async def analyze_data(
         
         # Save questions file
         try:
-            questions_content = await questions.read()
+            questions_content = await questions_file.read()
             if not questions_content:
                 raise HTTPException(status_code=400, detail="Questions file is empty")
             
