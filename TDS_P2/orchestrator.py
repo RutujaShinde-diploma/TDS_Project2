@@ -251,13 +251,18 @@ For CSV data, calculate exact values:
 - Identify patterns and relationships
 - Provide precise numerical answers
 
-Return your analysis in a clear, structured format."""
+IMPORTANT: Answer each question clearly and concisely. Do not repeat information. Format your response as:
+1. [Question 1] - [Clear answer with calculation]
+2. [Question 2] - [Clear answer with calculation]
+3. [Question 3] - [Clear answer with calculation]
+
+Keep each answer focused and avoid redundancy."""
             
             user_prompt = f"""Analyze this data and answer the questions:
 
 {questions_content}
 
-Please provide detailed answers to each question with calculations and explanations."""
+Please provide clear, concise answers to each question with calculations. Do not repeat information."""
             
             response = await client.chat.completions.create(
                 model=config.OPENAI_MODEL,
@@ -376,6 +381,17 @@ Please provide detailed answers to each question with calculations and explanati
             compiled_results = []
             for i, result in enumerate(results):
                 if result.status == ActionStatus.COMPLETED and result.output:
+                    # Check if this is an LLM analysis result
+                    if result.output.get("result") and isinstance(result.output["result"], dict):
+                        llm_result = result.output["result"]
+                        if "analysis" in llm_result:
+                            # Format LLM analysis results nicely
+                            analysis_text = llm_result["analysis"]
+                            # Clean up the analysis text
+                            clean_analysis = self._clean_llm_analysis(analysis_text)
+                            compiled_results.append(clean_analysis)
+                            continue
+                    
                     stdout = result.output.get("stdout", "")
                     if stdout and stdout.strip():
                         # Clean up the output
@@ -424,6 +440,46 @@ Please provide detailed answers to each question with calculations and explanati
                     files.append(item.name)
             return files
         except Exception:
+    
+    def _clean_llm_analysis(self, analysis_text: str) -> str:
+        """Clean and format LLM analysis results"""
+        try:
+            # Remove duplicate sections and clean up formatting
+            lines = analysis_text.strip().split('\n')
+            cleaned_lines = []
+            seen_sections = set()
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                # Check if this is a new question section
+                if line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                    section_key = line[:3]  # e.g., "1.", "2.", etc.
+                    if section_key not in seen_sections:
+                        seen_sections.add(section_key)
+                        cleaned_lines.append("")  # Add spacing
+                        cleaned_lines.append(line)
+                    else:
+                        # Skip duplicate sections
+                        continue
+                else:
+                    # Add non-question lines
+                    cleaned_lines.append(line)
+            
+            # Join lines and clean up extra whitespace
+            cleaned_text = "\n".join(cleaned_lines)
+            
+            # Remove extra blank lines
+            import re
+            cleaned_text = re.sub(r'\n\s*\n\s*\n', '\n\n', cleaned_text)
+            
+            return cleaned_text.strip()
+            
+        except Exception as e:
+            logger.warning(f"Failed to clean LLM analysis: {e}")
+            return analysis_text  # Return original if cleaning fails
             return []
     
     def _parse_to_simple_answers(self, results: List[str]) -> Optional[Dict[str, str]]:
