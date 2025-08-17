@@ -24,8 +24,8 @@ class PlannerModule:
             # Generate cache key
             cache_key = self._generate_cache_key(job_request, workspace_path)
             
-            # Try to get from cache first
-            cached_plan = await self.cache_manager.get(f"plan:{cache_key}")
+            # Try to get from simple storage first
+            cached_plan = simple_storage.get(f"plan:{cache_key}")
             if cached_plan:
                 logger.info("Using cached execution plan")
                 return ExecutionPlan.parse_obj(cached_plan)
@@ -39,8 +39,8 @@ class PlannerModule:
             # Parse and validate the plan
             plan = self._parse_plan(plan_json, job_request.questions)
             
-            # Cache the plan
-            await self.cache_manager.set(f"plan:{cache_key}", plan.dict(), ttl=config.CACHE_TTL)
+            # Cache the plan in simple storage
+            simple_storage.set(f"plan:{cache_key}", plan.dict(), ttl=config.CACHE_TTL)
             
             logger.info(f"Generated execution plan with {len(plan.actions)} actions")
             return plan
