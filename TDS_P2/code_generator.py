@@ -502,7 +502,30 @@ print(f"Query result: {result}")
 
     def _get_export_instructions(self, action: Action) -> str:
         """Instructions for export actions"""
-        return """import json
+        return """
+EXPORT INSTRUCTIONS:
+- Format final results as an ARRAY of answers in the order they were asked
+- Each answer should be a string (convert numbers, base64 images, etc. to strings)
+- The array should contain: [answer1, answer2, answer3, answer4, answer5, answer6]
+- Include all required outputs in the correct order
+- Save to the exact output file name specified in the action parameters
+- IMPORTANT: Convert all values to strings before adding to the array
+- Handle any available JSON files in the workspace
+- Use glob.glob('*.json') to find all JSON files if specific file names are not available
+- If no JSON files found, analyze the CSV data directly using pandas
+- ADAPT ANALYSIS TO AVAILABLE COLUMNS - check what columns exist before using them
+- Calculate the required statistics from the available data
+- Do not assume specific column names; infer from data and/or action.parameters
+- Use action.output_files[0] for final outputs
+- ALWAYS print debugging info: found files, data shape, available columns
+- FOCUS ON THE ACTUAL CALCULATION REQUESTED, not generic status messages
+- CRITICAL: Look for stats_result.json, query_result.json, or similar files first
+- HANDLE MULTIPLE QUESTIONS: If some questions fail, return partial results with error messages for failed ones
+
+CRITICAL: You MUST use this EXACT code structure and save to the specified output file:
+
+```python
+import json
 import glob
 import pandas as pd
 import numpy as np
@@ -590,28 +613,28 @@ else:
                     
                     print(f"Graph created with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
                     
-                    # Answer 1: Edge count
+                    # Answer 1: Edge count (NOT a graph - just the number)
                     edge_count = G.number_of_edges()
                     final_answers.append(str(edge_count))
                     print(f"Edge count: {edge_count}")
                     
-                    # Answer 2: Highest degree node
+                    # Answer 2: Highest degree node (NOT a graph - just the node name)
                     degrees = dict(G.degree())
                     highest_degree_node = max(degrees, key=degrees.get)
                     final_answers.append(highest_degree_node)
                     print(f"Highest degree node: {highest_degree_node}")
                     
-                    # Answer 3: Average degree
+                    # Answer 3: Average degree (NOT a graph - just the number)
                     avg_degree = sum(degrees.values()) / len(degrees)
                     final_answers.append(str(round(avg_degree, 2)))
                     print(f"Average degree: {avg_degree}")
                     
-                    # Answer 4: Network density
+                    # Answer 4: Network density (NOT a graph - just the number)
                     density = nx.density(G)
                     final_answers.append(str(round(density, 4)))
                     print(f"Network density: {density}")
                     
-                    # Answer 5: Shortest path between first two nodes
+                    # Answer 5: Shortest path between first two nodes (NOT a graph - just the number)
                     try:
                         nodes = list(G.nodes())
                         if len(nodes) >= 2:
@@ -623,7 +646,7 @@ else:
                     except:
                         final_answers.append("Path calculation failed")
                     
-                    # Answer 6: Network graph visualization
+                    # Answer 6: Network graph visualization (THIS IS THE GRAPH - base64 encoded image)
                     try:
                         plt.figure(figsize=(10, 8))
                         pos = nx.spring_layout(G)
@@ -671,7 +694,15 @@ output_filename = action.output_files[0] if action.output_files else 'final_resu
 print(f"CRITICAL: Saving results to {output_filename}")
 with open(output_filename, 'w') as f:
     json.dump(final_answers, f, indent=2)
-print(f"Final results saved to {output_filename}: {final_answers}")"""
+print(f"Final results saved to {output_filename}: {final_answers}")
+```
+
+IMPORTANT: 
+- Answers 1-5 should be TEXT/NUMBERS, NOT graphs
+- Only Answer 6 should contain the base64-encoded graph image
+- The final output should be an array: [answer1, answer2, answer3, answer4, answer5, answer6]
+- Save to the file specified in action.output_files[0]
+"""
 
     def _get_generic_instructions(self, action: Action) -> str:
         """Generic instructions for other action types"""
