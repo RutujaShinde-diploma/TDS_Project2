@@ -218,10 +218,10 @@ print(f"Available columns: {list(df.columns)}")
 
 # Calculate total sales (adapt to available columns)
 if 'sales' in df.columns:
-    total_sales = df['sales'].sum()
+total_sales = df['sales'].sum()
     # CRITICAL: Convert numpy types to Python types for JSON serialization
     total_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales
-    print(f"Total sales: {total_sales}")
+print(f"Total sales: {total_sales}")
     
     # Save result to JSON file for export action
     result = {"total_sales": total_sales}
@@ -277,7 +277,7 @@ import base64
 from io import BytesIO
 
 # Create plot
-plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 6))
 # ... your plotting code here ...
 plt.title('Your Plot Title')
 plt.xlabel('X Label')
@@ -286,12 +286,12 @@ plt.ylabel('Y Label')
 # Save to file
 output_file = action.output_files[0] if action.output_files else 'plot.png'
 plt.savefig(output_file, dpi=150, bbox_inches='tight')
-
-# Convert to base64
-buffer = BytesIO()
+    
+    # Convert to base64
+    buffer = BytesIO()
 plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
-buffer.seek(0)
-img_base64 = base64.b64encode(buffer.getvalue()).decode()
+    buffer.seek(0)
+    img_base64 = base64.b64encode(buffer.getvalue()).decode()
 buffer.close()
 plt.close()
 
@@ -323,7 +323,7 @@ Example:
 ```python
 import pandas as pd
 import networkx as nx
-import json
+    import json
 
 # Load data file
 data_file = action.output_files[0] if action.output_files else 'data.csv'
@@ -504,9 +504,10 @@ print(f"Query result: {result}")
         """Instructions for export actions"""
         return """
 EXPORT INSTRUCTIONS:
+- DYNAMICALLY COUNT QUESTIONS: First read questions.txt to determine how many questions there actually are
 - Format final results as an ARRAY of answers in the order they were asked
 - Each answer should be a string (convert numbers, base64 images, etc. to strings)
-- The array should contain: [answer1, answer2, answer3, answer4, answer5, answer6]
+- Generate exactly the number of answers that matches the questions in the file
 - Include all required outputs in the correct order
 - Save to the exact output file name specified in the action parameters
 - IMPORTANT: Convert all values to strings before adding to the array
@@ -536,6 +537,26 @@ import matplotlib.pyplot as plt
 import base64
 import io
 
+# DYNAMICALLY COUNT QUESTIONS FROM THE FILE
+print("Dynamically counting questions from questions.txt...")
+question_count = 0
+try:
+    with open('questions.txt', 'r') as f:
+        content = f.read()
+        # Count lines that look like numbered questions (e.g., "1.", "2.", "3.", etc.)
+        lines = content.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line and (line.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.')) or 
+                        line.startswith(('1)', '2)', '3)', '4)', '5)', '6)', '7)', '8)', '9)', '10)'))):
+                question_count += 1
+        print(f"Found {question_count} questions in questions.txt")
+except Exception as e:
+    print(f"Error reading questions.txt: {e}")
+    # Fallback: count based on available data
+    question_count = 7
+    print(f"Using fallback question count: {question_count}")
+
 # Find all JSON files in the current directory
 json_files = glob.glob('*.json')
 json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
@@ -543,7 +564,7 @@ json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
 print(f"Found JSON files: {json_files}")
 
 final_answers = []
-question_count = 7  # We have 7 questions (including 2 graphs)
+print(f"Will generate exactly {question_count} answers to match the questions")
 
 # First, try to read existing calculated results from previous actions
 print("Looking for existing calculated results...")
@@ -582,103 +603,115 @@ for json_file in json_files:
 if network_stats or network_graph or degree_histogram:
     print("Compiling existing results...")
     
-    # Answer 1: Edge count
-    if network_stats and 'edge_count' in network_stats:
+    # DYNAMICALLY MAP QUESTIONS TO ANSWERS BASED ON AVAILABLE DATA
+    # This approach works for any number of questions, not just hardcoded 7
+    
+    # Look for common network analysis metrics first
+    if question_count >= 1 and network_stats and 'edge_count' in network_stats:
         final_answers.append(str(network_stats['edge_count']))
-        print(f"Edge count: {network_stats['edge_count']}")
-    else:
+        print(f"Answer 1: Edge count = {network_stats['edge_count']}")
+    elif question_count >= 1:
         final_answers.append("Edge count not available")
+        print("Answer 1: Edge count not available")
     
-    # Answer 2: Highest degree node
-    if network_stats and 'highest_degree_node' in network_stats:
+    if question_count >= 2 and network_stats and 'highest_degree_node' in network_stats:
         final_answers.append(str(network_stats['highest_degree_node']))
-        print(f"Highest degree node: {network_stats['highest_degree_node']}")
-    else:
+        print(f"Answer 2: Highest degree node = {network_stats['highest_degree_node']}")
+    elif question_count >= 2:
         final_answers.append("Highest degree node not available")
+        print("Answer 2: Highest degree node not available")
     
-    # Answer 3: Average degree
-    if network_stats and 'average_degree' in network_stats:
+    if question_count >= 3 and network_stats and 'average_degree' in network_stats:
         final_answers.append(str(network_stats['average_degree']))
-        print(f"Average degree: {network_stats['average_degree']}")
-    else:
+        print(f"Answer 3: Average degree = {network_stats['average_degree']}")
+    elif question_count >= 3:
         final_answers.append("Average degree not available")
+        print("Answer 3: Average degree not available")
     
-    # Answer 4: Network density
-    if network_stats and 'density' in network_stats:
+    if question_count >= 4 and network_stats and 'density' in network_stats:
         final_answers.append(str(network_stats['density']))
-        print(f"Network density: {network_stats['density']}")
-    else:
+        print(f"Answer 4: Network density = {network_stats['density']}")
+    elif question_count >= 4:
         final_answers.append("Network density not available")
+        print("Answer 4: Network density not available")
     
-    # Answer 5: Shortest path
-    if network_stats and 'shortest_path_alice_eve' in network_stats:
+    if question_count >= 5 and network_stats and 'shortest_path_alice_eve' in network_stats:
         final_answers.append(str(network_stats['shortest_path_alice_eve']))
-        print(f"Shortest path: {network_stats['shortest_path_alice_eve']}")
-    else:
+        print(f"Answer 5: Shortest path = {network_stats['shortest_path_alice_eve']}")
+    elif question_count >= 5:
         final_answers.append("Shortest path not available")
+        print("Answer 5: Shortest path not available")
     
-    # Answer 6: Network graph visualization
-    if network_graph:
+    # Handle graph visualizations (typically questions 6+)
+    if question_count >= 6 and network_graph:
         if isinstance(network_graph, dict) and 'graph_base64' in network_graph:
             final_answers.append(network_graph['graph_base64'])
-            print("Network graph found in graph_base64")
+            print("Answer 6: Network graph found in graph_base64")
         elif isinstance(network_graph, dict) and 'network_graph' in network_graph:
             final_answers.append(network_graph['network_graph'])
-            print("Network graph found in network_graph")
+            print("Answer 6: Network graph found in network_graph")
         elif isinstance(network_graph, str):
             final_answers.append(network_graph)
-            print("Network graph found as string")
+            print("Answer 6: Network graph found as string")
         else:
             final_answers.append("Network graph format not recognized")
-    else:
+            print("Answer 6: Network graph format not recognized")
+    elif question_count >= 6:
         final_answers.append("Network graph not available")
+        print("Answer 6: Network graph not available")
     
-    # Answer 7: Degree histogram
-    if degree_histogram:
+    if question_count >= 7 and degree_histogram:
         if isinstance(degree_histogram, dict) and 'plot_base64' in degree_histogram:
             final_answers.append(degree_histogram['plot_base64'])
-            print("Degree histogram found in plot_base64")
+            print("Answer 7: Degree histogram found in plot_base64")
         elif isinstance(degree_histogram, dict) and 'degree_histogram' in degree_histogram:
             final_answers.append(degree_histogram['degree_histogram'])
-            print("Degree histogram found in degree_histogram")
+            print("Answer 7: Degree histogram found in degree_histogram")
         elif isinstance(degree_histogram, str):
             final_answers.append(degree_histogram)
-            print("Degree histogram found as string")
+            print("Answer 7: Degree histogram found as string")
         else:
             final_answers.append("Degree histogram format not recognized")
-    else:
+            print("Answer 7: Degree histogram format not recognized")
+    elif question_count >= 7:
         final_answers.append("Degree histogram not available")
+        print("Answer 7: Degree histogram not available")
+    
+    # Handle additional questions beyond 7 if they exist
+    for i in range(8, question_count + 1):
+        final_answers.append(f"Answer {i}: Additional question not yet implemented")
+        print(f"Answer {i}: Additional question not yet implemented")
     
     print(f"Compiled {len(final_answers)} answers from existing results")
     
 else:
-    # If no JSON files found, try to analyze the CSV data directly
+# If no JSON files found, try to analyze the CSV data directly
     try:
         # DYNAMICALLY DISCOVER CSV FILES
         csv_files = glob.glob('*.csv')
         print(f"Found CSV files: {csv_files}")
         
         if csv_files:
-            df = None
-            for csv_file in csv_files:
-                try:
-                    df = pd.read_csv(csv_file)
-                    print(f"Successfully loaded {csv_file}")
-                    print(f"Data shape: {df.shape}")
-                    print(f"Columns: {list(df.columns)}")
-                    break
-                except Exception as e:
-                    print(f"Failed to load {csv_file}: {e}")
-                    continue
-            
-            if df is None:
-                # If no CSV found, report the issue
-                print("No CSV file found for analysis")
+        df = None
+        for csv_file in csv_files:
+            try:
+                df = pd.read_csv(csv_file)
+                print(f"Successfully loaded {csv_file}")
+                print(f"Data shape: {df.shape}")
+                print(f"Columns: {list(df.columns)}")
+                break
+            except Exception as e:
+                print(f"Failed to load {csv_file}: {e}")
+                continue
+        
+        if df is None:
+            # If no CSV found, report the issue
+            print("No CSV file found for analysis")
                 final_answers = ["No data file available for analysis"] * question_count
             else:
-                # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
-                print(f"Available columns: {list(df.columns)}")
-                
+        # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
+        print(f"Available columns: {list(df.columns)}")
+        
                 # For network analysis, create graph and calculate metrics
                 if 'source' in df.columns and 'target' in df.columns:
                     print("Creating network graph...")
@@ -718,7 +751,7 @@ else:
                             shortest_path = nx.shortest_path_length(G, nodes[0], nodes[1])
                             final_answers.append(str(shortest_path))
                             print(f"Shortest path between {nodes[0]} and {nodes[1]}: {shortest_path}")
-                        else:
+        else:
                             final_answers.append("Not enough nodes for path calculation")
                     except:
                         final_answers.append("Path calculation failed")
@@ -745,8 +778,8 @@ else:
                         final_answers.append(f"Error generating graph: {str(e)}")
                         print(f"Error generating graph: {e}")
                 else:
-                    # Generic CSV analysis
-                    final_answers = [
+                    # Generic CSV analysis - generate exactly question_count answers
+                    generic_answers = [
                         f"Data shape: {df.shape}",
                         f"Columns: {list(df.columns)}",
                         f"First few rows: {df.head().to_dict()}",
@@ -755,6 +788,14 @@ else:
                         f"Summary stats: {df.describe().to_dict()}",
                         "No additional analysis available"
                     ]
+                    
+                    # Ensure we have exactly question_count answers
+                    if len(generic_answers) >= question_count:
+                        final_answers = generic_answers[:question_count]
+                    else:
+                        final_answers = generic_answers + ["No additional analysis available"] * (question_count - len(generic_answers))
+                    
+                    print(f"Generated {len(final_answers)} generic CSV analysis answers")
         else:
             final_answers = ["No CSV files found for analysis"] * question_count
     except Exception as e:
