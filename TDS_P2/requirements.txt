@@ -1,5 +1,4 @@
-# Python version compatibility
-python-requires>=3.9,<3.14
+# Python version compatibility - use runtime.txt instead
 
 # Core FastAPI and server
 fastapi>=0.104.0
