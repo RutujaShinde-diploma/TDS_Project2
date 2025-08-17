@@ -10,13 +10,8 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List, Tuple
 import json
 
-# Optional docker import
-try:
-    import docker
-    DOCKER_AVAILABLE = True
-except ImportError:
-    docker = None
-    DOCKER_AVAILABLE = False
+# Docker support removed for simplified deployment
+DOCKER_AVAILABLE = False
 
 from config import config
 
@@ -121,21 +116,8 @@ class SandboxExecutor:
     def __init__(self):
         self.docker_client = None
         self.validator = CodeValidator()
-        self._initialize_docker()
     
-    def _initialize_docker(self):
-        """Initialize Docker client"""
-        if not DOCKER_AVAILABLE:
-            logger.info("Docker not available, using subprocess execution only")
-            self.docker_client = None
-            return
-            
-        try:
-            self.docker_client = docker.from_env()
-            logger.info("Docker client initialized")
-        except Exception as e:
-            logger.error(f"Failed to initialize Docker: {str(e)}")
-            self.docker_client = None
+
     
     async def execute_code(self, code: str, workspace_path: str, action_id: str) -> Dict[str, Any]:
         """Execute code in sandbox"""
@@ -151,13 +133,9 @@ class SandboxExecutor:
                     "execution_time": time.time() - start_time
                 }
             
-            # For local testing, prefer subprocess over Docker
-            # This allows testing without Docker setup
-            if os.getenv("USE_DOCKER", "false").lower() == "true" and self.docker_client:
-                result = await self._execute_in_docker(code, workspace_path, action_id)
-            else:
-                logger.info("Using subprocess execution (local mode)")
-                result = await self._execute_in_subprocess(code, workspace_path, action_id)
+            # Using subprocess execution (simplified deployment)
+            logger.info("Using subprocess execution")
+            result = await self._execute_in_subprocess(code, workspace_path, action_id)
             
             result["execution_time"] = time.time() - start_time
             return result
@@ -170,89 +148,10 @@ class SandboxExecutor:
                 "execution_time": time.time() - start_time
             }
     
-    async def _execute_in_docker(self, code: str, workspace_path: str, action_id: str) -> Dict[str, Any]:
-        """Execute code in Docker container"""
-        try:
-            # Create temporary directory for this execution
-            with tempfile.TemporaryDirectory() as temp_dir:
-                # Copy workspace to temp directory
-                container_workspace = os.path.join(temp_dir, "workspace")
-                shutil.copytree(workspace_path, container_workspace)
-                
-                # Write code to file
-                code_file = os.path.join(temp_dir, f"{action_id}.py")
-                with open(code_file, 'w') as f:
-                    f.write(self._wrap_code(code))
-                
-                # Create requirements file with necessary packages
-                requirements_file = os.path.join(temp_dir, "requirements.txt")
-                with open(requirements_file, 'w') as f:
-                    f.write("""pandas
-numpy
-matplotlib
-seaborn
-scipy
-beautifulsoup4
-requests
-lxml
-html5lib
-duckdb
-pyarrow
-pillow""")
-                
-                # Run container
-                container = self.docker_client.containers.run(
-                    config.DOCKER_IMAGE,
-                    command=f"bash -c 'pip install -r /app/requirements.txt && cd /app/workspace && python /app/{action_id}.py'",
-                    volumes={temp_dir: {'bind': '/app', 'mode': 'rw'}},
-                    working_dir="/app/workspace",
-                    network_mode="bridge",  # Limited network access
-                    mem_limit="1g",
-                    cpu_quota=50000,  # 50% CPU
-                    remove=True,
-                    detach=False,
-                    stdout=True,
-                    stderr=True,
-                    timeout=config.SANDBOX_TIMEOUT
-                )
-                
-                # Get output
-                output = container.decode('utf-8')
-                
-                # Copy results back
-                if os.path.exists(container_workspace):
-                    for item in os.listdir(container_workspace):
-                        src = os.path.join(container_workspace, item)
-                        dst = os.path.join(workspace_path, item)
-                        if os.path.isfile(src):
-                            shutil.copy2(src, dst)
-                        elif os.path.isdir(src):
-                            if os.path.exists(dst):
-                                shutil.rmtree(dst)
-                            shutil.copytree(src, dst)
-                
-                return {
-                    "success": True,
-                    "output": output,
-                    "stdout": output,
-                    "stderr": ""
-                }
-                
-        except docker.errors.ContainerError as e:
-            return {
-                "success": False,
-                "error": f"Container execution failed: {e.stderr.decode() if e.stderr else str(e)}",
-                "stdout": e.stdout.decode() if e.stdout else "",
-                "stderr": e.stderr.decode() if e.stderr else ""
-            }
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Docker execution error: {str(e)}"
-            }
+
     
     async def _execute_in_subprocess(self, code: str, workspace_path: str, action_id: str) -> Dict[str, Any]:
-        """Execute code in subprocess (fallback when Docker unavailable)"""
+        """Execute code in subprocess (simplified deployment)"""
         try:
             # Create code file in workspace using absolute path
             workspace_path_abs = os.path.abspath(workspace_path)
