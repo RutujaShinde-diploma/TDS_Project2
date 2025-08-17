@@ -532,96 +532,9 @@ import numpy as np
 import networkx as nx
 import matplotlib
 matplotlib.use('Agg')  # CRITICAL: Use non-interactive backend for Render
-import matplotlib.pyplot as plt
-import base64
-import io
 
-# Find all JSON files in the current directory
-json_files = glob.glob('*.json')
-json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
-
-print(f"Found JSON files: {json_files}")
-
-final_answers = []
-question_count = 6  # We have 6 questions
-
-# First, try to read existing JSON results from previous actions
-for json_file in json_files:
-    try:
-        with open(json_file, 'r') as f:
-            data = json.load(f)
-            print(f"Reading {json_file}: {data}")
-            
-            # If it's already a list of answers, use it directly
-            if isinstance(data, list):
-                final_answers = data
-                break
-            # If it's a dict with answer keys, convert to list
-            elif isinstance(data, dict) and any(key.startswith('answer') for key in data.keys()):
-                final_answers = [str(data[key]) for key in sorted(data.keys()) if key.startswith('answer')]
-                break
-            # If it's a dict with other keys, extract values
-            elif isinstance(data, dict):
-                final_answers = [str(value) for value in data.values()]
-                break
-            # Otherwise, add as string
-            else:
-                final_answers.append(str(data))
-    except Exception as e:
-        print(f"Error reading {json_file}: {e}")
-        continue
-
-# If we found results in JSON files, use them
-if final_answers:
-    print(f"Using results from JSON files: {final_answers}")
-else:
-    # If no JSON files found, try to analyze the CSV data directly
-    try:
-        # DYNAMICALLY DISCOVER CSV FILES
-        csv_files = glob.glob('*.csv')
-        print(f"Found CSV files: {csv_files}")
-        
-        if csv_files:
-            df = None
-            for csv_file in csv_files:
-                try:
-                    df = pd.read_csv(csv_file)
-                    print(f"Successfully loaded {csv_file}")
-                    print(f"Data shape: {df.shape}")
-                    print(f"Columns: {list(df.columns)}")
-                    break
-                except Exception as e:
-                    print(f"Failed to load {csv_file}: {e}")
-                    continue
-            
-            if df is None:
-                # If no CSV found, report the issue
-                print("No CSV file found for analysis")
-                final_answers = ["No data file available for analysis"] * question_count
-            else:
-                # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
-                print(f"Available columns: {list(df.columns)}")
-                
-                # For network analysis, create graph and calculate metrics
-                if 'source' in df.columns and 'target' in df.columns:
-                    print("Creating network graph...")
-                    G = nx.Graph()
-                    
-                    # Add edges
-                    for _, row in df.iterrows():
-                        G.add_edge(row['source'], row['target'])
-                    
-                    print(f"Graph created with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
-                    
-                    # Answer 1: Edge count
-                    edge_count = G.number_of_edges()
-                    final_answers.append(str(edge_count))
-                    print(f"Edge count: {edge_count}")
-                    
-                    # Answer 2: Highest degree node
-                    degrees = dict(G.degree())
-                    highest_degree_node = max(degrees, key=degrees.get)
-                    final_answers.append(highest_degree_node)
+```
+"""
                     print(f"Highest degree node: {highest_degree_node}")
                     
                     # Answer 3: Average degree
