@@ -6,48 +6,70 @@ This script is used by the test framework to interact with the API.
 
 import subprocess
 import sys
+import os
+import json
+from pathlib import Path
+
+def get_test_files():
+    """Automatically detect test files without hardcoding specific test cases"""
+    current_dir = Path.cwd()
+    print(f"Current directory: {current_dir}", file=sys.stderr)
+    available_files = []
+    question_files = list(Path(".").glob("*question*.txt"))
+    if question_files:
+        available_files.append(question_files[0].name)
+        print(f"Found questions file: {question_files[0].name}", file=sys.stderr)
+    else:
+        print("Warning: No questions file found", file=sys.stderr)
+    data_files = []
+    for ext in ["*.csv", "*.json", "*.xlsx", "*.xls", "*.txt"]:
+        for file in Path(".").glob(ext):
+            if file.name not in [f.name for f in question_files]:
+                data_files.append(file.name)
+    if data_files:
+        available_files.extend(data_files)
+        print(f"Found data files: {data_files}", file=sys.stderr)
+    if not available_files:
+        print("Error: No test files found in current directory", file=sys.stderr)
+        return []
+    print(f"Total files to send: {available_files}", file=sys.stderr)
+    return available_files
+
+def build_curl_command(url, files):
+    """Build the curl command with the detected files"""
+    curl_command = ["curl", url]
+    question_files = [f for f in files if "question" in f.lower()]
+    if question_files:
+        curl_command.extend(["-F", f"questions=@{question_files[0]}"])
+    data_files = [f for f in files if "question" not in f.lower()]
+    for file in data_files:
+        curl_command.extend(["-F", f"files=@{file}"])
+    return curl_command
 
 def main():
-    """Main function to run the test"""
     if len(sys.argv) != 2:
-        print("Usage: python run.py <api_url>")
+        print(json.dumps({"error": "Usage: python run.py <api_url>"}))
         sys.exit(1)
     
     url = sys.argv[1]
+    test_files = get_test_files()
     
-    # Check which files exist and build the curl command accordingly
-    curl_command = ["curl", url]
-    
-    # Check for question.txt (note: singular, not plural)
-    if Path("question.txt").exists():
-        curl_command.extend(["-F", "questions.txt=@question.txt"])
-    elif Path("questions.txt").exists():
-        curl_command.extend(["-F", "questions.txt=@questions.txt"])
-    else:
-        print("Error: Neither question.txt nor questions.txt found")
+    if not test_files:
+        print(json.dumps({"error": "No test files found"}))
         sys.exit(1)
     
-    # Check for additional data files
-    if Path("edges.csv").exists():
-        curl_command.extend(["-F", "edges.csv=@edges.csv"])
-    
-    if Path("sample-sales.csv").exists():
-        curl_command.extend(["-F", "sample-sales.csv=@sample-sales.csv"])
-    
-    if Path("weather_data.csv").exists():
-        curl_command.extend(["-F", "weather_data.csv=@weather_data.csv"])
+    curl_command = build_curl_command(url, test_files)
+    print(f"Executing: {' '.join(curl_command)}", file=sys.stderr)
     
     try:
-        print(f"Executing: {' '.join(curl_command)}")
         result = subprocess.run(curl_command, capture_output=True, text=True, check=True)
-        print(result.stdout)
+        if result.stdout.strip():
+            print(result.stdout)
+        else:
+            print(json.dumps({"error": "API returned empty response"}))
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e.stderr}")
-        sys.exit(1)
-    except FileNotFoundError:
-        print("Error: curl command not found. Please install curl.")
+        print(json.dumps({"error": f"Subprocess failed", "details": e.stderr.strip()}))
         sys.exit(1)
 
 if __name__ == "__main__":
-    from pathlib import Path
     main()
