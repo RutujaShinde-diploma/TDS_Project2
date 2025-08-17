@@ -258,98 +258,50 @@ PLOTTING INSTRUCTIONS:
 - ALWAYS convert to base64 and save both PNG file and base64 data
 - Handle large datasets by sampling
 - Save base64 data to JSON file for API response
-- Validate data before plotting
-- Do not assume specific column names; infer from data and/or action.parameters
-- Use action.output_files[0] for final outputs
+- CRITICAL: Use non-interactive matplotlib backend for Render deployment
 
-For correlation plots specifically:
-- Ensure both X and Y columns are numeric
-- Handle missing values properly
-- Add regression line with proper statistics
-- Validate data types before plotting
+IMPORTANT: For Render deployment, use:
+```python
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
+import matplotlib.pyplot as plt
+```
 
 Example:
 ```python
+import matplotlib
+matplotlib.use('Agg')  # CRITICAL for Render
 import matplotlib.pyplot as plt
-import seaborn as sns
 import base64
 from io import BytesIO
-import numpy as np
-from scipy import stats
 
-# Validate data before plotting
-print("Preparing data for plotting...")
+# Create plot
+plt.figure(figsize=(10, 6))
+# ... your plotting code here ...
+plt.title('Your Plot Title')
+plt.xlabel('X Label')
+plt.ylabel('Y Label')
 
-# Get column names from action parameters or infer from data
-x_col = action.parameters.get('x_column', df.select_dtypes(include=[np.number]).columns[0])
-y_col = action.parameters.get('y_column', df.select_dtypes(include=[np.number]).columns[1])
+# Save to file
+output_file = action.output_files[0] if action.output_files else 'plot.png'
+plt.savefig(output_file, dpi=150, bbox_inches='tight')
 
-print(f"Data types:")
-print(df[[x_col, y_col]].dtypes)
+# Convert to base64
+buffer = BytesIO()
+plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+buffer.seek(0)
+img_base64 = base64.b64encode(buffer.getvalue()).decode()
+buffer.close()
+plt.close()
 
-# Ensure numeric columns
-if df[x_col].dtype == 'object':
-    df[x_col] = pd.to_numeric(df[x_col], errors='coerce')
-if df[y_col].dtype == 'object':
-    df[y_col] = pd.to_numeric(df[y_col], errors='coerce')
+# Save base64 to JSON
+import json
+result = {"plot_base64": img_base64, "plot_file": output_file}
+json_file = output_file.replace('.png', '_base64.json')
+with open(json_file, 'w') as f:
+    json.dump(result, f, indent=2)
 
-# Remove missing values for plotting
-df_plot = df[[x_col, y_col]].dropna()
-print(f"Data for plotting: {len(df_plot)} rows")
-
-if len(df_plot) > 1:
-    # Create the plot
-    plt.figure(figsize=(10, 6))
-    
-    # Scatter plot
-    plt.scatter(df_plot[x_col], df_plot[y_col], alpha=0.6, s=50)
-    
-    # Add regression line
-    if len(df_plot) > 2:
-        slope, intercept, r_value, p_value, std_err = stats.linregress(df_plot[x_col], df_plot[y_col])
-        line = slope * df_plot[x_col] + intercept
-        plt.plot(df_plot[x_col], line, 'r--', linewidth=2, label=f'R² = {r_value**2:.3f}')
-        plt.legend()
-    
-    # Labels and title
-    plt.xlabel(x_col)
-    plt.ylabel(y_col)
-    plt.title(f'Correlation between {x_col} and {y_col}')
-    plt.grid(True, alpha=0.3)
-    
-    # Save to file using action output files
-    output_filename = action.output_files[0] if action.output_files else 'plot.png'
-    plt.savefig(output_filename, dpi=80, bbox_inches='tight')
-    
-    # Convert to base64
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png', dpi=80, bbox_inches='tight')
-    buffer.seek(0)
-    img_base64 = base64.b64encode(buffer.getvalue()).decode()
-    
-    # Save base64 data to JSON file for API response
-    import json
-    base64_data = {
-        "filename": output_filename,
-        "base64": img_base64,
-        "size_bytes": len(img_base64)
-    }
-    with open('plot_base64.json', 'w') as f:
-        json.dump(base64_data, f, indent=2)
-    
-    # Also save just the base64 string for simple answers
-    with open('base64_answer.json', 'w') as f:
-        json.dump(img_base64, f)
-    
-    print(f"Plot saved as PNG and base64 data, size: {len(img_base64)} bytes")
-    plt.close()
-    
-    result = f"Correlation plot created with {len(df_plot)} data points"
-else:
-    result = "Error: Insufficient data for plotting"
-    print(result)
-
-print(f"\\nPlot result: {result}")
+print(f"Plot saved to {output_file} and base64 data to {json_file}")
 ```"""
 
     def _get_graph_instructions(self, action: Action) -> str:
@@ -577,6 +529,8 @@ import glob
 import pandas as pd
 import numpy as np
 import networkx as nx
+import matplotlib
+matplotlib.use('Agg')  # CRITICAL: Use non-interactive backend for Render
 import matplotlib.pyplot as plt
 import base64
 import io
@@ -585,17 +539,17 @@ import io
 json_files = glob.glob('*.json')
 json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
 
-print(f"Found JSON files: {{json_files}}")
+print(f"Found JSON files: {json_files}")
 
 final_answers = []
-question_count = 7  # Adjust based on actual number of questions
+question_count = 6  # We have 6 questions
 
 # First, try to read existing JSON results from previous actions
 for json_file in json_files:
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
-            print(f"Reading {{json_file}}: {{data}}")
+            print(f"Reading {json_file}: {data}")
             
             # If it's already a list of answers, use it directly
             if isinstance(data, list):
@@ -613,30 +567,30 @@ for json_file in json_files:
             else:
                 final_answers.append(str(data))
     except Exception as e:
-        print(f"Error reading {{json_file}}: {{e}}")
+        print(f"Error reading {json_file}: {e}")
         continue
 
 # If we found results in JSON files, use them
 if final_answers:
-    print(f"Using results from JSON files: {{final_answers}}")
+    print(f"Using results from JSON files: {final_answers}")
 else:
     # If no JSON files found, try to analyze the CSV data directly
     try:
         # DYNAMICALLY DISCOVER CSV FILES
         csv_files = glob.glob('*.csv')
-        print(f"Found CSV files: {{csv_files}}")
+        print(f"Found CSV files: {csv_files}")
         
         if csv_files:
             df = None
             for csv_file in csv_files:
                 try:
                     df = pd.read_csv(csv_file)
-                    print(f"Successfully loaded {{csv_file}}")
-                    print(f"Data shape: {{df.shape}}")
-                    print(f"Columns: {{list(df.columns)}}")
+                    print(f"Successfully loaded {csv_file}")
+                    print(f"Data shape: {df.shape}")
+                    print(f"Columns: {list(df.columns)}")
                     break
                 except Exception as e:
-                    print(f"Failed to load {{csv_file}}: {{e}}")
+                    print(f"Failed to load {csv_file}: {e}")
                     continue
             
             if df is None:
@@ -645,7 +599,7 @@ else:
                 final_answers = ["No data file available for analysis"] * question_count
             else:
                 # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
-                print(f"Available columns: {{list(df.columns)}}")
+                print(f"Available columns: {list(df.columns)}")
                 
                 # For network analysis, create graph and calculate metrics
                 if 'source' in df.columns and 'target' in df.columns:
@@ -656,35 +610,35 @@ else:
                     for _, row in df.iterrows():
                         G.add_edge(row['source'], row['target'])
                     
-                    print(f"Graph created with {{G.number_of_nodes()}} nodes and {{G.number_of_edges()}} edges")
+                    print(f"Graph created with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
                     
                     # Answer 1: Edge count
                     edge_count = G.number_of_edges()
                     final_answers.append(str(edge_count))
-                    print(f"Edge count: {{edge_count}}")
+                    print(f"Edge count: {edge_count}")
                     
                     # Answer 2: Highest degree node
                     degrees = dict(G.degree())
                     highest_degree_node = max(degrees, key=degrees.get)
                     final_answers.append(highest_degree_node)
-                    print(f"Highest degree node: {{highest_degree_node}}")
+                    print(f"Highest degree node: {highest_degree_node}")
                     
                     # Answer 3: Average degree
                     avg_degree = sum(degrees.values()) / len(degrees)
                     final_answers.append(str(round(avg_degree, 2)))
-                    print(f"Average degree: {{avg_degree}}")
+                    print(f"Average degree: {avg_degree}")
                     
                     # Answer 4: Network density
                     density = nx.density(G)
                     final_answers.append(str(round(density, 4)))
-                    print(f"Network density: {{density}}")
+                    print(f"Network density: {density}")
                     
                     # Answer 5: Shortest path between Alice and Eve
                     try:
                         if 'Alice' in G.nodes() and 'Eve' in G.nodes():
                             shortest_path = nx.shortest_path_length(G, 'Alice', 'Eve')
                             final_answers.append(str(shortest_path))
-                            print(f"Shortest path Alice to Eve: {{shortest_path}}")
+                            print(f"Shortest path Alice to Eve: {shortest_path}")
                         else:
                             final_answers.append("Error: Alice or Eve not in network")
                             print("Error: Alice or Eve not in network")
@@ -711,33 +665,8 @@ else:
                         final_answers.append(img_base64)
                         print("Network graph generated and encoded")
                     except Exception as e:
-                        final_answers.append(f"Error generating graph: {{str(e)}}")
-                        print(f"Error generating graph: {{e}}")
-                    
-                    # Answer 7: Degree histogram
-                    try:
-                        plt.figure(figsize=(8, 6))
-                        degree_values = list(degrees.values())
-                        plt.hist(degree_values, bins=range(min(degree_values), max(degree_values) + 2), 
-                                color='green', alpha=0.7, edgecolor='black')
-                        plt.xlabel('Degree')
-                        plt.ylabel('Frequency')
-                        plt.title('Degree Distribution')
-                        plt.grid(True, alpha=0.3)
-                        
-                        # Save to buffer and convert to base64
-                        buffer = io.BytesIO()
-                        plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
-                        buffer.seek(0)
-                        img_base64 = base64.b64encode(buffer.getvalue()).decode()
-                        buffer.close()
-                        plt.close()
-                        
-                        final_answers.append(img_base64)
-                        print("Degree histogram generated and encoded")
-                    except Exception as e:
-                        final_answers.append(f"Error generating histogram: {{str(e)}}")
-                        print(f"Error generating histogram: {{e}}")
+                        final_answers.append(f"Error generating graph: {str(e)}")
+                        print(f"Error generating graph: {e}")
                     
                 else:
                     # Handle regular CSV analysis
@@ -747,7 +676,7 @@ else:
                         # CRITICAL: Convert numpy types to Python types for JSON serialization
                         total_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales
                         final_answers.append(str(total_sales))
-                        print(f"Total sales calculated: {{total_sales}}")
+                        print(f"Total sales calculated: {total_sales}")
                     else:
                         # Look for any numeric column that could represent sales
                         numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
@@ -756,13 +685,13 @@ else:
                             # CRITICAL: Convert numpy types to Python types for JSON serialization
                             total_val = int(total_val) if hasattr(total_val, 'item') else total_val
                             final_answers.append(str(total_val))
-                            print(f"Total {{numeric_cols[0]}} calculated: {{total_val}}")
+                            print(f"Total {numeric_cols[0]} calculated: {total_val}")
                         else:
                             final_answers.append("No suitable numeric columns for calculation")
                     
                     # Answer 2: Count records
                     final_answers.append(str(len(df)))
-                    print(f"Total records: {{len(df)}}")
+                    print(f"Total records: {len(df)}")
                     
                     # Answer 3: Basic statistics
                     if numeric_cols:
@@ -770,7 +699,7 @@ else:
                         # CRITICAL: Convert numpy types to Python types for JSON serialization
                         avg_val = float(avg_val) if hasattr(avg_val, 'item') else avg_val
                         final_answers.append(str(round(avg_val, 2)))
-                        print(f"Average {{numeric_cols[0]}}: {{round(avg_val, 2)}}")
+                        print(f"Average {numeric_cols[0]}: {round(avg_val, 2)}")
                     else:
                         final_answers.append("No numeric columns for statistics")
                     
@@ -778,10 +707,10 @@ else:
                     while len(final_answers) < question_count:
                         final_answers.append("Question not implemented for this data type")
         
-        print(f"Calculated answers: {{final_answers}}")
+        print(f"Calculated answers: {final_answers}")
     except Exception as e:
-        print(f"Error analyzing data: {{e}}")
-        final_answers = [f"Error analyzing data: {{str(e)}}"] * question_count
+        print(f"Error analyzing data: {e}")
+        final_answers = [f"Error analyzing data: {str(e)}"] * question_count
 
 # Ensure we have the right number of answers
 while len(final_answers) < question_count:
@@ -789,11 +718,11 @@ while len(final_answers) < question_count:
 
 # CRITICAL: Save final results to the specified output file
 output_filename = action.output_files[0] if action.output_files else 'final_results.json'
-print(f"CRITICAL: Saving results to {{output_filename}}")
+print(f"CRITICAL: Saving results to {output_filename}")
 with open(output_filename, 'w') as f:
     json.dump(final_answers, f, indent=2)
 
-print(f"Final results saved to {{output_filename}}: {{final_answers}}")
+print(f"Final results saved to {output_filename}: {final_answers}")
 ```
 
 IMPORTANT: You MUST follow this exact structure and save to the file specified in action.output_files[0].

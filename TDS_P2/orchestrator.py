@@ -62,8 +62,11 @@ class Orchestrator:
                     logger.error(f"Action {action.action_id} failed: {action_result.error}")
                     logger.error(f"Action output: {action_result.output}")
                     
-                    # Try to continue with partial results if possible
-                    if self._can_continue_with_failure(action, plan.actions[i+1:]):
+                    # For non-critical actions (like plot), continue execution
+                    if action.type.value in ['plot', 'graph']:
+                        logger.warning(f"Non-critical action {action.action_id} failed, continuing execution")
+                        continue
+                    elif self._can_continue_with_failure(action, plan.actions[i+1:]):
                         logger.info("Continuing execution with partial results")
                         continue
                     else:
@@ -94,6 +97,27 @@ class Orchestrator:
                 if elapsed_time > config.MAX_EXECUTION_TIME:
                     logger.warning("Execution time limit reached")
                     break
+            
+            # CRITICAL: Always ensure export action runs if it exists
+            export_actions = [a for a in plan.actions if a.type == ActionStatus.EXPORT]
+            if export_actions:
+                export_action = export_actions[0]
+                export_result = next((r for r in results if r.action_id == export_action.action_id), None)
+                
+                if not export_result or export_result.status == ActionStatus.FAILED:
+                    logger.warning("🚨 Export action failed or didn't run, forcing execution...")
+                    
+                    # Generate and execute export code
+                    export_code = await self._get_action_code(export_action, context)
+                    export_action_result = await self._execute_action(export_action, context)
+                    
+                    # Replace or add the export result
+                    if export_result:
+                        results = [r if r.action_id != export_action.action_id else export_action_result for r in results]
+                    else:
+                        results.append(export_action_result)
+                    
+                    logger.info(f"✅ Export action forced execution completed with status: {export_action_result.status.value}")
             
             # Assemble final result
             final_result = await self._assemble_final_result(results, context, plan)
