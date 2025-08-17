@@ -543,37 +543,114 @@ json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
 print(f"Found JSON files: {json_files}")
 
 final_answers = []
-question_count = 6  # We have 6 questions
+question_count = 7  # We have 7 questions (including 2 graphs)
 
-# First, try to read existing JSON results from previous actions
+# First, try to read existing calculated results from previous actions
+print("Looking for existing calculated results...")
+
+# Look for specific result files
+network_stats = None
+network_graph = None
+degree_histogram = None
+
 for json_file in json_files:
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
             print(f"Reading {json_file}: {data}")
             
-            # If it's already a list of answers, use it directly
-            if isinstance(data, list):
-                final_answers = data
-                break
-            # If it's a dict with answer keys, convert to list
-            elif isinstance(data, dict) and any(key.startswith('answer') for key in data.keys()):
-                final_answers = [str(data[key]) for key in sorted(data.keys()) if key.startswith('answer')]
-                break
-            # If it's a dict with other keys, extract values
-            elif isinstance(data, dict):
-                final_answers = [str(value) for value in data.values()]
-                break
-            # Otherwise, add as string
-            else:
-                final_answers.append(str(data))
+            # Look for network statistics
+            if 'network_stats.json' in json_file or 'stats_result.json' in json_file:
+                network_stats = data
+                print(f"Found network stats: {network_stats}")
+            
+            # Look for network graph
+            elif 'network_graph_base64.json' in json_file or 'graph_data.json' in json_file:
+                network_graph = data
+                print(f"Found network graph: {type(network_graph)}")
+            
+            # Look for degree histogram
+            elif 'degree_distribution_base64.json' in json_file:
+                degree_histogram = data
+                print(f"Found degree histogram: {type(degree_histogram)}")
+                
     except Exception as e:
         print(f"Error reading {json_file}: {e}")
         continue
 
-# If we found results in JSON files, use them
-if final_answers:
-    print(f"Using results from JSON files: {final_answers}")
+# If we found existing results, compile them in the correct order
+if network_stats or network_graph or degree_histogram:
+    print("Compiling existing results...")
+    
+    # Answer 1: Edge count
+    if network_stats and 'edge_count' in network_stats:
+        final_answers.append(str(network_stats['edge_count']))
+        print(f"Edge count: {network_stats['edge_count']}")
+    else:
+        final_answers.append("Edge count not available")
+    
+    # Answer 2: Highest degree node
+    if network_stats and 'highest_degree_node' in network_stats:
+        final_answers.append(str(network_stats['highest_degree_node']))
+        print(f"Highest degree node: {network_stats['highest_degree_node']}")
+    else:
+        final_answers.append("Highest degree node not available")
+    
+    # Answer 3: Average degree
+    if network_stats and 'average_degree' in network_stats:
+        final_answers.append(str(network_stats['average_degree']))
+        print(f"Average degree: {network_stats['average_degree']}")
+    else:
+        final_answers.append("Average degree not available")
+    
+    # Answer 4: Network density
+    if network_stats and 'density' in network_stats:
+        final_answers.append(str(network_stats['density']))
+        print(f"Network density: {network_stats['density']}")
+    else:
+        final_answers.append("Network density not available")
+    
+    # Answer 5: Shortest path
+    if network_stats and 'shortest_path_alice_eve' in network_stats:
+        final_answers.append(str(network_stats['shortest_path_alice_eve']))
+        print(f"Shortest path: {network_stats['shortest_path_alice_eve']}")
+    else:
+        final_answers.append("Shortest path not available")
+    
+    # Answer 6: Network graph visualization
+    if network_graph:
+        if isinstance(network_graph, dict) and 'graph_base64' in network_graph:
+            final_answers.append(network_graph['graph_base64'])
+            print("Network graph found in graph_base64")
+        elif isinstance(network_graph, dict) and 'network_graph' in network_graph:
+            final_answers.append(network_graph['network_graph'])
+            print("Network graph found in network_graph")
+        elif isinstance(network_graph, str):
+            final_answers.append(network_graph)
+            print("Network graph found as string")
+        else:
+            final_answers.append("Network graph format not recognized")
+    else:
+        final_answers.append("Network graph not available")
+    
+    # Answer 7: Degree histogram
+    if degree_histogram:
+        if isinstance(degree_histogram, dict) and 'plot_base64' in degree_histogram:
+            final_answers.append(degree_histogram['plot_base64'])
+            print("Degree histogram found in plot_base64")
+        elif isinstance(degree_histogram, dict) and 'degree_histogram' in degree_histogram:
+            final_answers.append(degree_histogram['degree_histogram'])
+            print("Degree histogram found in degree_histogram")
+        elif isinstance(degree_histogram, str):
+            final_answers.append(degree_histogram)
+            print("Degree histogram found as string")
+        else:
+            final_answers.append("Degree histogram format not recognized")
+    else:
+        final_answers.append("Degree histogram not available")
+    
+    print(f"Compiled {len(final_answers)} answers from existing results")
+    
 else:
     # If no JSON files found, try to analyze the CSV data directly
     try:
@@ -675,7 +752,8 @@ else:
                         f"First few rows: {df.head().to_dict()}",
                         f"Data types: {df.dtypes.to_dict()}",
                         f"Missing values: {df.isnull().sum().to_dict()}",
-                        f"Summary stats: {df.describe().to_dict()}"
+                        f"Summary stats: {df.describe().to_dict()}",
+                        "No additional analysis available"
                     ]
         else:
             final_answers = ["No CSV files found for analysis"] * question_count
