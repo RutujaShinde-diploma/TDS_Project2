@@ -1,0 +1,10 @@
+Process this text and answer the questions.
+
+Text: "Hello world! This is a test message with 5 words."
+
+Questions:
+1. How many characters are in the text?
+2. How many words are in the text?
+3. What is the first word in the text?
+
+Return answers as simple text, one per line.

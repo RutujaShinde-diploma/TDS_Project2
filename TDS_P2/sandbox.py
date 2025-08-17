@@ -14,8 +14,9 @@ import json
 DOCKER_AVAILABLE = False
 
 from config import config
+from utils.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 class CodeValidator:
     """Static code analysis for safety checks"""

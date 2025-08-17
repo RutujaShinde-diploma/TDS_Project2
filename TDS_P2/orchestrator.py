@@ -10,8 +10,9 @@ from models import ExecutionPlan, Action, ActionResult, ActionStatus, ExecutionC
 from sandbox import SandboxExecutor
 from code_generator import CodeGenerator
 from utils.simple_storage import simple_storage
+from utils.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 class Orchestrator:
     """Orchestrates the execution of action plans"""
@@ -160,6 +161,10 @@ class Orchestrator:
                 logger.info(f"🚀 ORCHESTRATOR: Workspace path: {context.workspace_path}")
                 logger.info(f"🚀 ORCHESTRATOR: Available files: {context.available_files}")
                 
+                # Log the actual generated code for debugging
+                logger.info(f"🔍 DEBUG: Generated code for {action.action_id}:")
+                logger.info(f"🔍 DEBUG: Code preview: {code[:500]}...")
+                
                 execution_result = await self.sandbox.execute_code(
                     code, context.workspace_path, action.action_id
                 )
@@ -219,9 +224,10 @@ class Orchestrator:
     
     async def _get_action_code(self, action: Action, context: ExecutionContext) -> str:
         """Get code for action (from cache or generate new)"""
-        # Try cache first
-        cache_context = self._create_cache_context(action, context)
-        cached_code = await self.code_cache.get_code(action.type.value, cache_context)
+        # Try cache first using simple storage
+        # Add version to force cache invalidation after code changes
+        cache_key = f"code:v2:{action.type.value}:{action.action_id}"
+        cached_code = simple_storage.get(cache_key)
         
         if cached_code:
             logger.info(f"Using cached code for {action.action_id}")
@@ -231,6 +237,9 @@ class Orchestrator:
         logger.info(f"🚀 ORCHESTRATOR: Generating new code for {action.action_id}")
         code = await self.code_generator.generate_code(action, context)
         logger.info(f"🚀 ORCHESTRATOR: Generated code for {action.action_id}: {code[:200]}...")
+        
+        # Cache the new code
+        simple_storage.set(cache_key, code)
         return code
     
     async def _repair_code(self, action: Action, context: ExecutionContext, 
@@ -312,28 +321,10 @@ Please provide clear, concise answers to each question with calculations. Do not
     async def _cache_successful_code(self, action: Action, context: ExecutionContext, code: str):
         """Cache successful code for future use"""
         try:
-            cache_context = self._create_cache_context(action, context)
-            await self.code_cache.cache_code(action.type.value, cache_context, code)
+            cache_key = f"code:{action.type.value}:{action.action_id}"
+            simple_storage.set(cache_key, code)
         except Exception as e:
             logger.warning(f"Failed to cache code: {str(e)}")
-    
-    def _create_cache_context(self, action: Action, context: ExecutionContext) -> str:
-        """Create a context string for caching"""
-        context_parts = [
-            action.type.value,
-            str(sorted(action.parameters.items())),
-            str(sorted(context.available_files))
-        ]
-        
-        # For export actions, include the questions content to avoid cache conflicts
-        if action.type.value == "export" and "questions" in action.parameters:
-            questions_content = action.parameters.get("questions", "")
-            # Use a hash of the questions to keep cache key manageable
-            import hashlib
-            questions_hash = hashlib.md5(questions_content.encode()).hexdigest()[:8]
-            context_parts.append(f"questions_hash:{questions_hash}")
-        
-        return "|".join(context_parts)
     
     def _can_continue_with_failure(self, failed_action: Action, remaining_actions: List[Action]) -> bool:
         """Determine if execution can continue after an action failure"""
@@ -358,56 +349,98 @@ Please provide clear, concise answers to each question with calculations. Do not
                                    plan: ExecutionPlan) -> Union[List[str], Dict[str, str]]:
         """Assemble the final result from all action results"""
         try:
+            logger.info(f"🔍 RESULT ASSEMBLY: Starting result assembly")
+            logger.info(f"🔍 RESULT ASSEMBLY: Number of action results: {len(results)}")
+            logger.info(f"🔍 RESULT ASSEMBLY: Action types: {[r.action_id for r in results]}")
+            logger.info(f"🔍 RESULT ASSEMBLY: Action statuses: {[r.status.value for r in results]}")
+            
             workspace = Path(context.workspace_path)
+            logger.info(f"🔍 RESULT ASSEMBLY: Workspace path: {context.workspace_path}")
+            
+            # Log ALL files in workspace for debugging
+            all_files = list(workspace.glob("*"))
+            logger.info(f"🔍 RESULT ASSEMBLY: ALL files in workspace: {[f.name for f in all_files]}")
+            logger.info(f"🔍 RESULT ASSEMBLY: Workspace contents: {[f.name for f in workspace.iterdir() if f.is_file()]}")
+            
+            # Log each action result for debugging
+            for i, result in enumerate(results):
+                logger.info(f"🔍 RESULT ASSEMBLY: Action {i+1} - ID: {result.action_id}, Status: {result.status.value}")
+                if result.output:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Action {i+1} output keys: {list(result.output.keys()) if isinstance(result.output, dict) else 'Not a dict'}")
+                    if 'stdout' in result.output:
+                        logger.info(f"🔍 RESULT ASSEMBLY: Action {i+1} stdout: {result.output['stdout'][:200]}...")
+                else:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Action {i+1} has no output")
             
             # Strategy 1: Look for final output files
+            logger.info(f"🔍 RESULT ASSEMBLY: Starting Strategy 1 - Looking for final output files")
             output_files = ["final_results.json", "final_response.json", "results.json", "query_result.json"]
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Checking for files: {output_files}")
             for filename in output_files:
                 file_path = workspace / filename
+                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Checking file: {file_path} (exists: {file_path.exists()})")
                 if file_path.exists():
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             final_result = json.load(f)
-                        logger.info(f"Found final results in {filename}")
+                        logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Found final results in {filename}: {final_result}")
                         # If it's already a dictionary with answer keys, return it directly
                         if isinstance(final_result, dict) and any(key.startswith('answer') for key in final_result.keys()):
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Returning dict with answer keys")
                             return final_result
                         # If it's a list, return it directly
                         elif isinstance(final_result, list):
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Returning list result")
                             return final_result
                         # Otherwise, convert to string and wrap in list
                         else:
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Converting to string and wrapping in list")
                             return [str(final_result)]
                     except Exception as e:
-                        logger.warning(f"Failed to parse {filename}: {e}")
+                        logger.warning(f"🔍 RESULT ASSEMBLY: Strategy 1 - Failed to parse {filename}: {e}")
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - No final output files found")
             
             # Strategy 2: Find export action and check its output files
-            for action in plan.actions:
-                if action.type.value == "export":
-                    for output_file in action.output_files:
-                        file_path = workspace / output_file
-                        if file_path.exists():
+            logger.info(f"🔍 RESULT ASSEMBLY: Starting Strategy 2 - Looking for export action output files")
+            export_actions = [action for action in plan.actions if action.type.value == "export"]
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Found {len(export_actions)} export actions")
+            for action in export_actions:
+                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Checking export action: {action.action_id}")
+                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Export action output files: {action.output_files}")
+                for output_file in action.output_files:
+                    file_path = workspace / output_file
+                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Checking export output file: {file_path} (exists: {file_path.exists()})")
+                    if file_path.exists():
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                content = f.read().strip()
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Found export output file: {output_file} with content: {content[:200]}...")
+                            # Try to parse as JSON first
                             try:
-                                with open(file_path, 'r', encoding='utf-8') as f:
-                                    content = f.read().strip()
-                                    # Try to parse as JSON first
-                                    try:
-                                        result = json.loads(content)
-                                        return result if isinstance(result, list) else [str(result)]
-                                    except:
-                                        # Return as string if not JSON
-                                        return [content]
-                            except Exception as e:
-                                logger.warning(f"Failed to read {output_file}: {e}")
+                                result = json.loads(content)
+                                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Successfully parsed JSON from {output_file}")
+                                return result if isinstance(result, list) else [str(result)]
+                            except:
+                                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Content is not JSON, returning as string")
+                                # Return as string if not JSON
+                                return [content]
+                        except Exception as e:
+                            logger.warning(f"🔍 RESULT ASSEMBLY: Strategy 2 - Failed to read {output_file}: {e}")
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - No export action output files found")
             
             # Strategy 3: Compile results from successful actions' stdout
+            logger.info(f"🔍 RESULT ASSEMBLY: Starting Strategy 3 - Compiling results from actions' stdout")
             compiled_results = []
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Number of action results: {len(results)}")
             for i, result in enumerate(results):
+                logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Action {i+1}: ID={result.action_id}, Status={result.status.value}")
                 if result.status == ActionStatus.COMPLETED and result.output:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Action {i+1} completed successfully")
                     # Check if this is an LLM analysis result
                     if result.output.get("result") and isinstance(result.output["result"], dict):
                         llm_result = result.output["result"]
                         if "analysis" in llm_result:
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Found LLM analysis result")
                             # Format LLM analysis results nicely
                             analysis_text = llm_result["analysis"]
                             # Clean up the analysis text
@@ -416,36 +449,59 @@ Please provide clear, concise answers to each question with calculations. Do not
                             continue
                     
                     stdout = result.output.get("stdout", "")
+                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Action {i+1} stdout length: {len(stdout)}")
                     if stdout and stdout.strip():
                         # Clean up the output
                         clean_output = stdout.strip()
                         # Skip generic messages and data loading info
                         if not any(phrase in clean_output.lower() for phrase in 
                                  ["starting", "fetching", "found", "saved", "completed", "loaded", "rows", "columns", "dataframe", "rangeindex"]):
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Adding stdout to compiled results: {clean_output[:100]}...")
                             compiled_results.append(clean_output)
+                        else:
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Skipping generic stdout: {clean_output[:100]}...")
+                    else:
+                        logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Action {i+1} has no stdout or empty stdout")
+                else:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Action {i+1} not completed or no output")
+            
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 3 - Compiled {len(compiled_results)} results")
             
             # Strategy 4: Look for any JSON files with answers
-            for json_file in workspace.glob("*.json"):
+            logger.info(f"🔍 RESULT ASSEMBLY: Starting Strategy 4 - Looking for JSON files with answers")
+            json_files = list(workspace.glob("*.json"))
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 4 - Found JSON files: {[f.name for f in json_files]}")
+            for json_file in json_files:
                 if json_file.name not in ["plan.json", "metadata.json"]:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 4 - Processing JSON file: {json_file.name}")
                     try:
                         with open(json_file, 'r', encoding='utf-8') as f:
                             content = json.load(f)
                         if content:  # Non-empty content
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 4 - Found content in {json_file.name}: {content}")
                             compiled_results.append(f"From {json_file.name}: {content}")
-                    except:
-                        continue
+                        else:
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 4 - JSON file {json_file.name} is empty")
+                    except Exception as e:
+                        logger.warning(f"🔍 RESULT ASSEMBLY: Strategy 4 - Failed to read {json_file.name}: {e}")
             
             if compiled_results:
+                logger.info(f"🔍 RESULT ASSEMBLY: Strategies 3-4 found {len(compiled_results)} results, trying to parse into simple answers")
                 # Try to parse into simple numbered answers
                 simple_answers = self._parse_to_simple_answers(compiled_results)
                 if simple_answers:
+                    logger.info(f"🔍 RESULT ASSEMBLY: Successfully parsed into simple answers: {simple_answers}")
                     return simple_answers
+                logger.info(f"🔍 RESULT ASSEMBLY: Could not parse into simple answers, returning compiled results")
                 return compiled_results
             
-            # Strategy 5: Check if scraping worked by looking for CSV files
-            csv_files = list(workspace.glob("*.csv"))
-            if csv_files:
-                return [f"Data was scraped successfully. Found {len(csv_files)} data files, but analysis results were not properly formatted."]
+            logger.info(f"🔍 RESULT ASSEMBLY: Strategies 1-4 all failed, falling back to Strategy 5")
+            
+            # Strategy 5: Check if CSV files exist but analysis failed
+            # csv_files = list(workspace.glob("*.csv"))
+            # if csv_files:
+            #     logger.warning(f"🔍 RESULT ASSEMBLY: Strategy 5 - CSV files found but analysis failed: {[f.name for f in csv_files]}")
+            #     return [f"CSV analysis failed. Found {len(csv_files)} data files, but the generated code did not produce the expected results. Please check the code generation."]
             
             return ["Analysis completed with partial results"]
             

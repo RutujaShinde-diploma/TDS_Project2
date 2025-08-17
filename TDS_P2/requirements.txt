@@ -12,6 +12,9 @@ matplotlib==3.8.3
 seaborn==0.13.2
 scipy==1.12.0
 
+# Graph and network analysis
+networkx==3.2.1
+
 # Web scraping and data extraction
 requests==2.31.0
 beautifulsoup4==4.12.2

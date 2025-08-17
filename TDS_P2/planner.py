@@ -9,8 +9,9 @@ from config import config
 from models import JobRequest, ExecutionPlan, Action, ActionType
 from utils.simple_storage import simple_storage
 from utils.file_analyzer import FileAnalyzer
+from utils.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 class PlannerModule:
     def __init__(self):
@@ -116,6 +117,10 @@ class PlannerModule:
         if any(word in text_lower for word in ['scrape', 'website', 'url', 'web', 'http']):
             task_analysis["requires_web_scraping"] = True
             task_analysis["task_type"] = "web_scraping"
+        
+        # Check for CSV analysis requirements
+        if any(word in text_lower for word in ['csv', 'analyze', 'calculate', 'total', 'sum', 'average', 'count']):
+            task_analysis["task_type"] = "csv_analysis"
         
         # Check for embedded data (only if no external files required)
         if not task_analysis["requires_external_files"]:
@@ -263,6 +268,9 @@ Available files:
             prompt += "No additional files provided.\n"
         
         # Add task-specific guidance
+        logger.info(f"🔍 PLANNER DEBUG: Task type detected: {task_analysis['task_type']}")
+        logger.info(f"🔍 PLANNER DEBUG: Task analysis: {task_analysis}")
+        
         if task_analysis["task_type"] == "network_analysis":
             prompt += f"""
 NETWORK ANALYSIS TASK DETECTED:
@@ -278,13 +286,7 @@ IMPORTANT: Create a plan with this sequence:
 
 Use these action types: load, graph, plot, export
 """
-        elif task_analysis["task_type"] == "web_scraping":
-            prompt += f"""
-WEB SCRAPING TASK DETECTED:
-- Task type: {task_analysis["task_type"]}
-
-IMPORTANT: Use scrape action to extract data from websites
-"""
+        # Web scraping removed - not needed for CSV analysis
         elif task_analysis["has_embedded_data"]:
             prompt += f"""
 EMBEDDED DATA DETECTED:
@@ -292,6 +294,59 @@ EMBEDDED DATA DETECTED:
 - Data preview: {task_analysis["data_preview"]}
 
 IMPORTANT: Use "llm_analysis" action type since data is embedded in questions.
+"""
+        elif task_analysis["task_type"] == "csv_analysis" or any(f.endswith('.csv') for f in job_request.files):
+            prompt += f"""
+CSV ANALYSIS TASK DETECTED:
+- Task type: {task_analysis["task_type"]}
+- CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
+
+IMPORTANT: For CSV analysis, use this sequence:
+1. load: Load the CSV file(s) into DataFrames
+2. stats: Perform calculations (sum, average, count, etc.)
+3. export: Format results as requested
+
+Use these action types: load, stats, export
+DO NOT use SQL for simple CSV calculations - use stats instead.
+DO NOT use web scraping - this is CSV data analysis, not web data collection.
+DO NOT mention "Data was scraped successfully" - focus on the actual calculations.
+
+CRITICAL: The export action MUST specify output_files to save the final results.
+Example export action:
+{{
+  "action_id": "action_003",
+  "type": "export",
+  "description": "Format the results into a JSON object",
+  "output_files": ["final_results.json"],
+  "estimated_time": 30
+}}
+"""
+        elif task_analysis["task_type"] == "network_analysis" or any(f.endswith('.csv') for f in job_request.files if 'source' in f or 'target' in f):
+            prompt += f"""
+NETWORK ANALYSIS TASK DETECTED:
+- Task type: {task_analysis["task_type"]}
+- CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
+
+IMPORTANT: For network analysis, use this sequence:
+1. load: Load the CSV file(s) into DataFrames
+2. graph: Perform network analysis (degree, density, shortest paths)
+3. plot: Generate network graph and degree histogram
+4. export: Format results as requested
+
+Use these action types: load, graph, plot, export
+The graph action should analyze network metrics
+The plot action should generate visualizations
+DO NOT use web scraping - this is network data analysis, not web data collection.
+
+CRITICAL: The export action MUST specify output_files to save the final results.
+Example export action:
+{{
+  "action_id": "action_004",
+  "type": "export",
+  "description": "Format the results into a JSON object",
+  "output_files": ["final_results.json"],
+  "estimated_time": 30
+}}
 """
         else:
             prompt += f"""
