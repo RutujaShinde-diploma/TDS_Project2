@@ -9,7 +9,7 @@ from config import config
 from models import ExecutionPlan, Action, ActionResult, ActionStatus, ExecutionContext
 from sandbox import SandboxExecutor
 from code_generator import CodeGenerator
-from utils.cache import CacheManager, CodeCache
+from utils.simple_storage import simple_storage
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,8 @@ class Orchestrator:
     def __init__(self):
         self.sandbox = SandboxExecutor()
         self.code_generator = CodeGenerator()
-        self.cache_manager = CacheManager()
-        self.code_cache = CodeCache(self.cache_manager)
+        # Using simple storage instead of Redis cache
+        # Using simple storage instead of Redis cache
         
     async def execute_plan(self, plan: ExecutionPlan, workspace_path: str) -> Union[List[str], Dict[str, str]]:
         """Execute a complete execution plan"""

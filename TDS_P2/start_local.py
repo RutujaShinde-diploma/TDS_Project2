@@ -42,9 +42,8 @@ def setup_environment():
     os.environ["PYTHONUNBUFFERED"] = "1"
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
     
-    # Use in-memory cache if Redis not available
-    if "REDIS_URL" not in os.environ:
-        os.environ["REDIS_URL"] = "memory://localhost"
+    # Use simple in-memory cache (no Redis required)
+    os.environ["CACHE_TYPE"] = "simple"
     
     print("✅ Environment setup complete")
 
@@ -73,20 +72,11 @@ def load_api_key():
     print("Please create api_key.txt with your OpenAI API key")
     return False
 
-def start_redis_if_available():
-    """Try to start Redis if available, otherwise use fallback"""
-    try:
-        import redis
-        # Try to connect to Redis
-        r = redis.Redis(host='localhost', port=6379, decode_responses=True)
-        r.ping()
-        print("✅ Redis is available and running")
-        os.environ["REDIS_URL"] = "redis://localhost:6379"
-        return True
-    except:
-        print("⚠️  Redis not available, using in-memory cache fallback")
-        os.environ["REDIS_URL"] = "memory://localhost"
-        return False
+def start_simple_cache():
+    """Setup simple in-memory cache (no Redis required)"""
+    print("✅ Using simple in-memory cache (no Redis required)")
+    os.environ["CACHE_TYPE"] = "simple"
+    return True
 
 def load_env_variables():
     """Load environment variables from .env file"""
@@ -127,8 +117,8 @@ def main():
     if not load_api_key():
         sys.exit(1)
     
-    # Try Redis, fallback to memory
-    start_redis_if_available()
+    # Setup simple cache (no Redis required)
+    start_simple_cache()
     
     print("\n📡 Starting API server...")
     print("API will be available at: http://localhost:8000")

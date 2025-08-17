@@ -7,7 +7,7 @@ import hashlib
 
 from config import config
 from models import JobRequest, ExecutionPlan, Action, ActionType
-from utils.cache import CacheManager
+from utils.simple_storage import simple_storage
 from utils.file_analyzer import FileAnalyzer
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class PlannerModule:
     def __init__(self):
         self.client = openai.AsyncOpenAI(api_key=config.OPENAI_API_KEY)
-        self.cache_manager = CacheManager()
+        # Using simple storage instead of Redis cache
         self.file_analyzer = FileAnalyzer()
         
     async def create_plan(self, job_request: JobRequest, workspace_path: str) -> ExecutionPlan:

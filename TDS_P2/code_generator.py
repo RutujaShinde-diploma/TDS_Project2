@@ -5,7 +5,7 @@ import json
 
 from config import config
 from models import Action, ExecutionContext, ActionType
-from utils.cache import CacheManager, LLMCache
+from utils.simple_storage import simple_storage
 
 # IMPROVED PROMPTS:
 # - Removed domain-specific references (films, Rank/Peak, Inside Out 2)
@@ -21,8 +21,8 @@ class CodeGenerator:
     
     def __init__(self):
         self.client = openai.AsyncOpenAI(api_key=config.OPENAI_API_KEY)
-        self.cache_manager = CacheManager()
-        self.llm_cache = LLMCache(self.cache_manager)
+        # Using simple storage instead of Redis cache
+        # Using simple storage instead of Redis cache
         
     async def generate_code(self, action: Action, context: ExecutionContext) -> str:
         """Generate code for a specific action"""
