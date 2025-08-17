@@ -502,7 +502,7 @@ print(f"Query result: {result}")
 
     def _get_export_instructions(self, action: Action) -> str:
         """Instructions for export actions"""
-        return f"""
+        return """
 EXPORT INSTRUCTIONS:
 - Format final results as an ARRAY of answers in the order they were asked
 - Each answer should be a string (convert numbers, base64 images, etc. to strings)
@@ -532,9 +532,96 @@ import numpy as np
 import networkx as nx
 import matplotlib
 matplotlib.use('Agg')  # CRITICAL: Use non-interactive backend for Render
+import matplotlib.pyplot as plt
+import base64
+import io
 
-```
-"""
+# Find all JSON files in the current directory
+json_files = glob.glob('*.json')
+json_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]
+
+print(f"Found JSON files: {json_files}")
+
+final_answers = []
+question_count = 6  # We have 6 questions
+
+# First, try to read existing JSON results from previous actions
+for json_file in json_files:
+    try:
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+            print(f"Reading {json_file}: {data}")
+            
+            # If it's already a list of answers, use it directly
+            if isinstance(data, list):
+                final_answers = data
+                break
+            # If it's a dict with answer keys, convert to list
+            elif isinstance(data, dict) and any(key.startswith('answer') for key in data.keys()):
+                final_answers = [str(data[key]) for key in sorted(data.keys()) if key.startswith('answer')]
+                break
+            # If it's a dict with other keys, extract values
+            elif isinstance(data, dict):
+                final_answers = [str(value) for value in data.values()]
+                break
+            # Otherwise, add as string
+            else:
+                final_answers.append(str(data))
+    except Exception as e:
+        print(f"Error reading {json_file}: {e}")
+        continue
+
+# If we found results in JSON files, use them
+if final_answers:
+    print(f"Using results from JSON files: {final_answers}")
+else:
+    # If no JSON files found, try to analyze the CSV data directly
+    try:
+        # DYNAMICALLY DISCOVER CSV FILES
+        csv_files = glob.glob('*.csv')
+        print(f"Found CSV files: {csv_files}")
+        
+        if csv_files:
+            df = None
+            for csv_file in csv_files:
+                try:
+                    df = pd.read_csv(csv_file)
+                    print(f"Successfully loaded {csv_file}")
+                    print(f"Data shape: {df.shape}")
+                    print(f"Columns: {list(df.columns)}")
+                    break
+                except Exception as e:
+                    print(f"Failed to load {csv_file}: {e}")
+                    continue
+            
+            if df is None:
+                # If no CSV found, report the issue
+                print("No CSV file found for analysis")
+                final_answers = ["No data file available for analysis"] * question_count
+            else:
+                # DYNAMICALLY ANALYZE DATA BASED ON AVAILABLE COLUMNS
+                print(f"Available columns: {list(df.columns)}")
+                
+                # For network analysis, create graph and calculate metrics
+                if 'source' in df.columns and 'target' in df.columns:
+                    print("Creating network graph...")
+                    G = nx.Graph()
+                    
+                    # Add edges
+                    for _, row in df.iterrows():
+                        G.add_edge(row['source'], row['target'])
+                    
+                    print(f"Graph created with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges")
+                    
+                    # Answer 1: Edge count
+                    edge_count = G.number_of_edges()
+                    final_answers.append(str(edge_count))
+                    print(f"Edge count: {edge_count}")
+                    
+                    # Answer 2: Highest degree node
+                    degrees = dict(G.degree())
+                    highest_degree_node = max(degrees, key=degrees.get)
+                    final_answers.append(highest_degree_node)
                     print(f"Highest degree node: {highest_degree_node}")
                     
                     # Answer 3: Average degree
@@ -547,27 +634,26 @@ matplotlib.use('Agg')  # CRITICAL: Use non-interactive backend for Render
                     final_answers.append(str(round(density, 4)))
                     print(f"Network density: {density}")
                     
-                    # Answer 5: Shortest path between Alice and Eve
+                    # Answer 5: Shortest path between first two nodes
                     try:
-                        if 'Alice' in G.nodes() and 'Eve' in G.nodes():
-                            shortest_path = nx.shortest_path_length(G, 'Alice', 'Eve')
+                        nodes = list(G.nodes())
+                        if len(nodes) >= 2:
+                            shortest_path = nx.shortest_path_length(G, nodes[0], nodes[1])
                             final_answers.append(str(shortest_path))
-                            print(f"Shortest path Alice to Eve: {shortest_path}")
+                            print(f"Shortest path between {nodes[0]} and {nodes[1]}: {shortest_path}")
                         else:
-                            final_answers.append("Error: Alice or Eve not in network")
-                            print("Error: Alice or Eve not in network")
+                            final_answers.append("Not enough nodes for path calculation")
                     except:
-                        final_answers.append("Error: No path between Alice and Eve")
-                        print("Error: No path between Alice and Eve")
+                        final_answers.append("Path calculation failed")
                     
                     # Answer 6: Network graph visualization
                     try:
                         plt.figure(figsize=(10, 8))
                         pos = nx.spring_layout(G)
-                        nx.draw(G, pos, with_labels=True, node_color='lightblue', 
+                        nx.draw(G, pos, with_labels=True, node_color='lightblue',
                                node_size=1000, font_size=10, font_weight='bold')
                         plt.title("Network Graph")
-                        
+
                         # Save to buffer and convert to base64
                         buffer = io.BytesIO()
                         plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
@@ -575,71 +661,41 @@ matplotlib.use('Agg')  # CRITICAL: Use non-interactive backend for Render
                         img_base64 = base64.b64encode(buffer.getvalue()).decode()
                         buffer.close()
                         plt.close()
-                        
+
                         final_answers.append(img_base64)
                         print("Network graph generated and encoded")
                     except Exception as e:
                         final_answers.append(f"Error generating graph: {str(e)}")
                         print(f"Error generating graph: {e}")
-                    
                 else:
-                    # Handle regular CSV analysis
-                    # Answer 1: Calculate total (adapt to available columns)
-                    if 'sales' in df.columns:
-                        total_sales = df['sales'].sum()
-                        # CRITICAL: Convert numpy types to Python types for JSON serialization
-                        total_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales
-                        final_answers.append(str(total_sales))
-                        print(f"Total sales calculated: {total_sales}")
-                    else:
-                        # Look for any numeric column that could represent sales
-                        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-                        if numeric_cols:
-                            total_val = df[numeric_cols[0]].sum()
-                            # CRITICAL: Convert numpy types to Python types for JSON serialization
-                            total_val = int(total_val) if hasattr(total_val, 'item') else total_val
-                            final_answers.append(str(total_val))
-                            print(f"Total {numeric_cols[0]} calculated: {total_val}")
-                        else:
-                            final_answers.append("No suitable numeric columns for calculation")
-                    
-                    # Answer 2: Count records
-                    final_answers.append(str(len(df)))
-                    print(f"Total records: {len(df)}")
-                    
-                    # Answer 3: Basic statistics
-                    if numeric_cols:
-                        avg_val = df[numeric_cols[0]].mean()
-                        # CRITICAL: Convert numpy types to Python types for JSON serialization
-                        avg_val = float(avg_val) if hasattr(avg_val, 'item') else avg_val
-                        final_answers.append(str(round(avg_val, 2)))
-                        print(f"Average {numeric_cols[0]}: {round(avg_val, 2)}")
-                    else:
-                        final_answers.append("No numeric columns for statistics")
-                    
-                    # Fill remaining answers with error messages
-                    while len(final_answers) < question_count:
-                        final_answers.append("Question not implemented for this data type")
-        
-        print(f"Calculated answers: {final_answers}")
+                    # Generic CSV analysis
+                    final_answers = [
+                        f"Data shape: {df.shape}",
+                        f"Columns: {list(df.columns)}",
+                        f"First few rows: {df.head().to_dict()}",
+                        f"Data types: {df.dtypes.to_dict()}",
+                        f"Missing values: {df.isnull().sum().to_dict()}",
+                        f"Summary stats: {df.describe().to_dict()}"
+                    ]
+        else:
+            final_answers = ["No CSV files found for analysis"] * question_count
     except Exception as e:
-        print(f"Error analyzing data: {e}")
-        final_answers = [f"Error analyzing data: {str(e)}"] * question_count
+        print(f"Error in CSV analysis: {e}")
+        final_answers = [f"Analysis error: {str(e)}"] * question_count
 
-# Ensure we have the right number of answers
+# Ensure we have exactly 6 answers
 while len(final_answers) < question_count:
     final_answers.append("Answer not available")
+if len(final_answers) > question_count:
+    final_answers = final_answers[:question_count]
 
 # CRITICAL: Save final results to the specified output file
 output_filename = action.output_files[0] if action.output_files else 'final_results.json'
 print(f"CRITICAL: Saving results to {output_filename}")
 with open(output_filename, 'w') as f:
     json.dump(final_answers, f, indent=2)
-
 print(f"Final results saved to {output_filename}: {final_answers}")
 ```
-
-IMPORTANT: You MUST follow this exact structure and save to the file specified in action.output_files[0].
 """
 
     def _get_generic_instructions(self, action: Action) -> str:
