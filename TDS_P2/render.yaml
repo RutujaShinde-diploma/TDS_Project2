@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: data-analyst-agent-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python render_startup.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MAX_EXECUTION_TIME
+        value: 300
+      - key: MAX_FILE_SIZE
+        value: 100000000
+      - key: SANDBOX_TIMEOUT
+        value: 60
+      - key: CACHE_TTL
+        value: 3600
+      - key: MAX_RETRIES
+        value: 3
+    # Add these environment variables in Render dashboard:
+    # - OPENAI_API_KEY: Your OpenAI API key
+    # - REDIS_URL: Your Redis connection URL

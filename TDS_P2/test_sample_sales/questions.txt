@@ -1,0 +1,9 @@
+Analyze `sample-sales.csv`.
+
+Return a JSON object with keys:
+- `total_sales`: number
+
+
+Answer:
+1. What is the total sales across all regions?
+ 

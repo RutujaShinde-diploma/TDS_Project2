@@ -35,17 +35,15 @@ class Config:
     
     # Sandbox Configuration
     SANDBOX_TIMEOUT: int = int(os.getenv("SANDBOX_TIMEOUT", "30"))
-    DOCKER_IMAGE: str = "python:3.11-slim"
     
     # Cache Configuration
-    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379")
     CACHE_TTL: int = int(os.getenv("CACHE_TTL", "3600"))  # 1 hour
     
     # Logging Configuration
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     
-    # File Configuration - Use relative path for Docker compatibility
-    WORKSPACE_DIR: str = os.getenv("WORKSPACE_DIR", "/app/workspace")
+    # File Configuration - Use relative path for production compatibility
+    WORKSPACE_DIR: str = os.getenv("WORKSPACE_DIR", "workspace")
     ALLOWED_EXTENSIONS = {
         ".txt", ".csv", ".json", ".parquet", ".xlsx", ".xls", 
         ".png", ".jpg", ".jpeg", ".pdf", ".html", ".xml"

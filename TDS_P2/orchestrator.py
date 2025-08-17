@@ -24,6 +24,12 @@ class Orchestrator:
         
     async def execute_plan(self, plan: ExecutionPlan, workspace_path: str) -> Union[List[str], Dict[str, str]]:
         """Execute a complete execution plan"""
+        logger.info(f"🚀 ORCHESTRATOR: Starting execute_plan method")
+        logger.info(f"🚀 ORCHESTRATOR: Plan ID: {plan.plan_id}")
+        logger.info(f"🚀 ORCHESTRATOR: Workspace path: {workspace_path}")
+        logger.info(f"🚀 ORCHESTRATOR: Number of actions: {len(plan.actions)}")
+        logger.info(f"🚀 ORCHESTRATOR: Action types: {[action.type.value for action in plan.actions]}")
+        
         start_time = time.time()
         results = []
         context = ExecutionContext(
@@ -31,11 +37,16 @@ class Orchestrator:
             available_files=self._get_workspace_files(workspace_path)
         )
         
+        logger.info(f"🚀 ORCHESTRATOR: Context created with {len(context.available_files)} available files")
+        logger.info(f"🚀 ORCHESTRATOR: Available files: {context.available_files}")
+        
         logger.info(f"Starting execution of plan {plan.plan_id} with {len(plan.actions)} actions")
         
         try:
+            logger.info(f"🚀 ORCHESTRATOR: About to start action execution loop")
             # Execute actions sequentially
             for i, action in enumerate(plan.actions):
+                logger.info(f"🚀 ORCHESTRATOR: Starting action {i+1}/{len(plan.actions)}: {action.action_id}")
                 logger.info(f"Executing action {i+1}/{len(plan.actions)}: {action.action_id}")
                 
                 action_result = await self._execute_action(action, context)
@@ -97,6 +108,12 @@ class Orchestrator:
     
     async def _execute_action(self, action: Action, context: ExecutionContext) -> ActionResult:
         """Execute a single action with retries"""
+        logger.info(f"🚀 ORCHESTRATOR: Starting execution of {action.action_id}")
+        logger.info(f"🚀 ORCHESTRATOR: Action type: {action.type.value}")
+        logger.info(f"🚀 ORCHESTRATOR: Action description: {action.description}")
+        logger.info(f"🚀 ORCHESTRATOR: Context workspace: {context.workspace_path}")
+        logger.info(f"🚀 ORCHESTRATOR: Context available files: {context.available_files}")
+        
         action_result = ActionResult(
             action_id=action.action_id,
             status=ActionStatus.IN_PROGRESS
@@ -138,6 +155,11 @@ class Orchestrator:
                 action_result.generated_code = code
                 
                 # Execute code in sandbox
+                logger.info(f"🚀 ORCHESTRATOR: About to execute {action.action_id} in sandbox")
+                logger.info(f"🚀 ORCHESTRATOR: Code length: {len(code)} characters")
+                logger.info(f"🚀 ORCHESTRATOR: Workspace path: {context.workspace_path}")
+                logger.info(f"🚀 ORCHESTRATOR: Available files: {context.available_files}")
+                
                 execution_result = await self.sandbox.execute_code(
                     code, context.workspace_path, action.action_id
                 )
@@ -206,8 +228,9 @@ class Orchestrator:
             return cached_code
         
         # Generate new code
-        logger.info(f"Generating new code for {action.action_id}")
+        logger.info(f"🚀 ORCHESTRATOR: Generating new code for {action.action_id}")
         code = await self.code_generator.generate_code(action, context)
+        logger.info(f"🚀 ORCHESTRATOR: Generated code for {action.action_id}: {code[:200]}...")
         return code
     
     async def _repair_code(self, action: Action, context: ExecutionContext, 

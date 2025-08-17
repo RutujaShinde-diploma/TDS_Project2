@@ -257,16 +257,40 @@ pillow""")
             # Create code file in workspace using absolute path
             workspace_path_abs = os.path.abspath(workspace_path)
             code_file = os.path.join(workspace_path_abs, f"{action_id}.py")
+            
+            logger.info(f"🔍 SANDBOX DEBUG: Workspace path: {workspace_path}")
+            logger.info(f"🔍 SANDBOX DEBUG: Absolute workspace path: {workspace_path_abs}")
+            logger.info(f"🔍 SANDBOX DEBUG: Code file path: {code_file}")
+            logger.info(f"🔍 SANDBOX DEBUG: Code file exists: {os.path.exists(code_file)}")
+            logger.info(f"🔍 SANDBOX DEBUG: Workspace contents: {os.listdir(workspace_path_abs) if os.path.exists(workspace_path_abs) else 'Workspace does not exist'}")
+            
+            wrapped_code = self._wrap_code(code)
+            logger.info(f"🔍 SANDBOX DEBUG: Generated code length: {len(code)} characters")
+            logger.info(f"🔍 SANDBOX DEBUG: Wrapped code length: {len(wrapped_code)} characters")
+            logger.info(f"🔍 SANDBOX DEBUG: Code preview: {code[:200]}...")
+            
             with open(code_file, 'w') as f:
-                f.write(self._wrap_code(code))
+                f.write(wrapped_code)
+            
+            logger.info(f"🔍 SANDBOX DEBUG: Code file written, size: {os.path.getsize(code_file)} bytes")
+            logger.info(f"🔍 SANDBOX DEBUG: Python3 executable: {shutil.which('python3')}")
+            logger.info(f"🔍 SANDBOX DEBUG: Environment PATH: {os.environ.get('PATH', 'Not set')}")
+            
+            restricted_env = self._get_restricted_env()
+            logger.info(f"🔍 SANDBOX DEBUG: Restricted env PATH: {restricted_env.get('PATH', 'Not set')}")
+            logger.info(f"🔍 SANDBOX DEBUG: Restricted env keys: {list(restricted_env.keys())}")
             
             # Execute with timeout using absolute path
+            # Try to find the correct Python executable
+            python_exec = shutil.which('python3') or shutil.which('python') or 'python3'
+            logger.info(f"🔍 SANDBOX DEBUG: Using Python executable: {python_exec}")
+            
             process = await asyncio.create_subprocess_exec(
-                'python', code_file,
+                python_exec, code_file,
                 cwd=workspace_path_abs,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env=self._get_restricted_env()
+                env=restricted_env
             )
             
             try:
