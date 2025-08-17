@@ -6,7 +6,7 @@ from pathlib import Path
 import json
 
 from config import config
-from models import ExecutionPlan, Action, ActionResult, ActionStatus, ExecutionContext
+from models import ExecutionPlan, Action, ActionResult, ActionStatus, ActionType, ExecutionContext
 from sandbox import SandboxExecutor
 from code_generator import CodeGenerator
 from utils.simple_storage import simple_storage
