@@ -502,30 +502,7 @@ print(f"Query result: {result}")
 
     def _get_export_instructions(self, action: Action) -> str:
         """Instructions for export actions"""
-        return """
-EXPORT INSTRUCTIONS:
-- Format final results as an ARRAY of answers in the order they were asked
-- Each answer should be a string (convert numbers, base64 images, etc. to strings)
-- The array should contain: [answer1, answer2, answer3, ...]
-- Include all required outputs in the correct order
-- Save to the exact output file name specified in the action parameters
-- IMPORTANT: Convert all values to strings before adding to the array
-- Handle any available JSON files in the workspace
-- Use glob.glob('*.json') to find all JSON files if specific file names are not available
-- If no JSON files found, analyze the CSV data directly using pandas
-- ADAPT ANALYSIS TO AVAILABLE COLUMNS - check what columns exist before using them
-- Calculate the required statistics from the available data
-- Do not assume specific column names; infer from data and/or action.parameters
-- Use action.output_files[0] for final outputs
-- ALWAYS print debugging info: found files, data shape, available columns
-- FOCUS ON THE ACTUAL CALCULATION REQUESTED, not generic status messages
-- CRITICAL: Look for stats_result.json, query_result.json, or similar files first
-- HANDLE MULTIPLE QUESTIONS: If some questions fail, return partial results with error messages for failed ones
-
-CRITICAL: You MUST use this EXACT code structure and save to the specified output file:
-
-```python
-import json
+        return """import json
 import glob
 import pandas as pd
 import numpy as np
@@ -694,9 +671,7 @@ output_filename = action.output_files[0] if action.output_files else 'final_resu
 print(f"CRITICAL: Saving results to {output_filename}")
 with open(output_filename, 'w') as f:
     json.dump(final_answers, f, indent=2)
-print(f"Final results saved to {output_filename}: {final_answers}")
-```
-"""
+print(f"Final results saved to {output_filename}: {final_answers}")"""
 
     def _get_generic_instructions(self, action: Action) -> str:
         """Generic instructions for other action types"""
