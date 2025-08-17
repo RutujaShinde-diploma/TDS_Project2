@@ -104,6 +104,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Additional security patterns
+config.local.py
+settings.local.py
+secrets.py
+credentials.py
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -141,6 +147,17 @@ Thumbs.db
 workspace/
 logs/
 *.log
+
+# API Keys and Secrets (CRITICAL!)
+api_key.txt
+openai_key.txt
+*.key
+*.pem
+*.p12
+secrets/
+.env.local
+.env.production
+.env.staging
 
 # Docker
 .dockerignore
