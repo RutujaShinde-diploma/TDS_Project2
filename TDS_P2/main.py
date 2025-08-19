@@ -217,7 +217,6 @@ async def analyze_data(
     questions: UploadFile = File(None, description="questions.txt file with task description"),
     questions_txt: UploadFile = File(None, description="Alternative field name for questions.txt"),
     files: List[UploadFile] = File(default=[], description="Optional data files"),
-
 ):
     """
     Main endpoint for data analysis requests
@@ -225,7 +224,6 @@ async def analyze_data(
     Accepts:
     - questions.txt (required): Contains the analysis questions/tasks
     - Additional files (optional): Multiple data files, images, etc.
-
     
     Returns answers directly in format: {"answer1": "value1", "answer2": "value2", ...}
     
@@ -305,10 +303,12 @@ async def analyze_data(
             logger.error(f"Error writing questions file for job {job_id}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to write questions file: {str(e)}")
         
-        # Save additional files
+        # Save additional files - Now accept ANY field name that contains a file
         uploaded_files = []
+        
+        # First, process files from the 'files' parameter
         if files:
-            logger.info(f"📁 Processing {len(files)} additional files for job {job_id}")
+            logger.info(f"📁 Processing {len(files)} files from 'files' parameter for job {job_id}")
             for i, file in enumerate(files):
                 try:
                     logger.info(f"📁 Processing file {i+1}/{len(files)}: {file.filename}")
@@ -334,6 +334,53 @@ async def analyze_data(
                 except Exception as e:
                     logger.error(f"Error processing file {file.filename} for job {job_id}: {str(e)}")
                     raise HTTPException(status_code=500, detail=f"Failed to process file {file.filename}: {str(e)}")
+        
+        # Now process ANY other files that might have been sent with different field names
+        # This handles cases like edges.csv, sample-sales.csv, etc.
+        try:
+            # Parse the form data to find any additional files
+            form_data = await request.form()
+            logger.info(f"🔍 Form data fields received: {list(form_data.keys())}")
+            
+            for field_name, field_value in form_data.items():
+                # Skip the questions fields and files field we already processed
+                if field_name in ['questions', 'questions_txt', 'files']:
+                    continue
+                
+                # If this field contains a file, process it
+                if hasattr(field_value, 'filename') and field_value.filename:
+                    logger.info(f"📁 Processing additional file from field '{field_name}': {field_value.filename}")
+                    
+                    try:
+                        if field_value.size > config.MAX_FILE_SIZE:
+                            logger.warning(f"⚠️ File {field_value.filename} exceeds size limit, skipping")
+                            continue
+                        
+                        file_path = job_workspace / field_value.filename
+                        content = await asyncio.wait_for(
+                            field_value.read(),
+                            timeout=30  # 30 seconds timeout per file
+                        )
+                        async with aiofiles.open(file_path, 'wb') as f:
+                            await asyncio.wait_for(
+                                f.write(content),
+                                timeout=30  # 30 seconds timeout per file
+                            )
+                        
+                        uploaded_files.append(field_value.filename)
+                        logger.info(f"✅ Additional file {field_value.filename} processed successfully for job {job_id}")
+                    except asyncio.TimeoutError:
+                        logger.error(f"⏰ Additional file {field_value.filename} processing timed out for job {job_id}")
+                        continue  # Skip this file but continue with others
+                    except Exception as e:
+                        logger.error(f"Error processing additional file {field_value.filename} for job {job_id}: {str(e)}")
+                        continue  # Skip this file but continue with others
+                        
+        except Exception as e:
+            logger.warning(f"⚠️ Error processing additional form fields for job {job_id}: {str(e)}")
+            # Don't fail the entire request if we can't process additional fields
+        
+        logger.info(f"📁 Total files processed for job {job_id}: {uploaded_files}")
         
         # Create job request
         job_request = JobRequest(
