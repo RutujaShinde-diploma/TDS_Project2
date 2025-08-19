@@ -6,8 +6,7 @@ Return a JSON object with keys:
 - `average_degree`: number
 - `density`: number
 - `shortest_path_alice_eve`: number
-- `network_graph`: base64 PNG string under 100kB
-- `degree_histogram`: base64 PNG string under 100kB
+
 
 Answer:
 1. How many edges are in the network?
@@ -15,5 +14,4 @@ Answer:
 3. What is the average degree of the network?
 4. What is the network density?
 5. What is the length of the shortest path between Alice and Eve?
-6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.
-7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.
+

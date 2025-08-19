@@ -69,30 +69,6 @@
     },
     "expires": 1755455784.24823
   },
-  "code:v2:load:action_001": {
-    "value": "import pandas as pd\n\n# Load CSV\nsales_data = pd.read_csv('sample-sales.csv')\nprint(f\"Loaded {len(sales_data)} rows, {len(sales_data.columns)} columns\")\nprint(sales_data.head())\nprint(sales_data.info())",
-    "expires": 1755455786.9170365
-  },
-  "code:load:action_001": {
-    "value": "import pandas as pd\n\n# Load CSV\nsales_data = pd.read_csv('sample-sales.csv')\nprint(f\"Loaded {len(sales_data)} rows, {len(sales_data.columns)} columns\")\nprint(sales_data.head())\nprint(sales_data.info())",
-    "expires": 1755455788.7767768
-  },
-  "code:v2:stats:action_002": {
-    "value": "import pandas as pd\nimport json\n\n# Load CSV file\ndf = pd.read_csv('sample-sales.csv')\n\n# Calculate total sales\ntotal_sales = df['sales'].sum()\n\n# Convert numpy types to Python types for JSON serialization\ntotal_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales\n\n# Print the result\nprint(f\"Total sales: {total_sales}\")\n\n# Save result to JSON file\nresult = {\"total_sales\": total_sales}\noutput_file = 'sales_result.json'\nwith open(output_file, 'w') as f:\n    json.dump(result, f, indent=2)",
-    "expires": 1755455793.2501392
-  },
-  "code:stats:action_002": {
-    "value": "import pandas as pd\nimport json\n\n# Load CSV file\ndf = pd.read_csv('sample-sales.csv')\n\n# Calculate total sales\ntotal_sales = df['sales'].sum()\n\n# Convert numpy types to Python types for JSON serialization\ntotal_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales\n\n# Print the result\nprint(f\"Total sales: {total_sales}\")\n\n# Save result to JSON file\nresult = {\"total_sales\": total_sales}\noutput_file = 'sales_result.json'\nwith open(output_file, 'w') as f:\n    json.dump(result, f, indent=2)",
-    "expires": 1755455794.915089
-  },
-  "code:v2:export:action_003": {
-    "value": "import json\nimport glob\nimport pandas as pd\nimport numpy as np\n\njson_files = glob.glob('*.json')\njson_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]\n\nfinal_answers = []\n\nfor json_file in json_files:\n    try:\n        with open(json_file, 'r') as f:\n            data = json.load(f)\n            if isinstance(data, list):\n                final_answers = data\n                break\n            elif isinstance(data, dict) and any(key.startswith('answer') for key in data.keys()):\n                final_answers = [str(data[key]) for key in sorted(data.keys()) if key.startswith('answer')]\n                break\n            elif isinstance(data, dict):\n                final_answers = [str(value) for value in data.values()]\n                break\n            else:\n                final_answers.append(str(data))\n    except Exception as e:\n        continue\n\nif final_answers:\n    pass\nelse:\n    csv_files = glob.glob('*.csv')\n    df = None\n    for csv_file in csv_files:\n        try:\n            df = pd.read_csv(csv_file)\n            break\n        except Exception as e:\n            continue\n        \n    if df is None:\n        final_answers.append(\"No data file available for analysis\")\n    else:\n        if 'sales' in df.columns:\n            total_sales = df['sales'].sum()\n            total_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales\n            final_answers.append(str(total_sales))\n        else:\n            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()\n            if numeric_cols:\n                total_val = df[numeric_cols[0]].sum()\n                total_val = int(total_val) if hasattr(total_val, 'item') else total_val\n                final_answers.append(str(total_val))\n            else:\n                final_answers.append(\"No suitable numeric columns for calculation\")\n            \n        final_answers.append(str(len(df)))\n        \n        if numeric_cols:\n            avg_val = df[numeric_cols[0]].mean()\n            avg_val = float(avg_val) if hasattr(avg_val, 'item') else avg_val\n            final_answers.append(str(round(avg_val, 2)))\n        else:\n            final_answers.append(\"No numeric columns for statistics\")\n\noutput_filename = 'final_results.json'\nwith open(output_filename, 'w') as f:\n    json.dump(final_answers, f, indent=2)",
-    "expires": 1755455808.9217439
-  },
-  "code:export:action_003": {
-    "value": "import json\nimport glob\nimport pandas as pd\nimport numpy as np\n\njson_files = glob.glob('*.json')\njson_files = [f for f in json_files if f not in ['plan.json', 'metadata.json']]\n\nfinal_answers = []\n\nfor json_file in json_files:\n    try:\n        with open(json_file, 'r') as f:\n            data = json.load(f)\n            if isinstance(data, list):\n                final_answers = data\n                break\n            elif isinstance(data, dict) and any(key.startswith('answer') for key in data.keys()):\n                final_answers = [str(data[key]) for key in sorted(data.keys()) if key.startswith('answer')]\n                break\n            elif isinstance(data, dict):\n                final_answers = [str(value) for value in data.values()]\n                break\n            else:\n                final_answers.append(str(data))\n    except Exception as e:\n        continue\n\nif final_answers:\n    pass\nelse:\n    csv_files = glob.glob('*.csv')\n    df = None\n    for csv_file in csv_files:\n        try:\n            df = pd.read_csv(csv_file)\n            break\n        except Exception as e:\n            continue\n        \n    if df is None:\n        final_answers.append(\"No data file available for analysis\")\n    else:\n        if 'sales' in df.columns:\n            total_sales = df['sales'].sum()\n            total_sales = int(total_sales) if hasattr(total_sales, 'item') else total_sales\n            final_answers.append(str(total_sales))\n        else:\n            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()\n            if numeric_cols:\n                total_val = df[numeric_cols[0]].sum()\n                total_val = int(total_val) if hasattr(total_val, 'item') else total_val\n                final_answers.append(str(total_val))\n            else:\n                final_answers.append(\"No suitable numeric columns for calculation\")\n            \n        final_answers.append(str(len(df)))\n        \n        if numeric_cols:\n            avg_val = df[numeric_cols[0]].mean()\n            avg_val = float(avg_val) if hasattr(avg_val, 'item') else avg_val\n            final_answers.append(str(round(avg_val, 2)))\n        else:\n            final_answers.append(\"No numeric columns for statistics\")\n\noutput_filename = 'final_results.json'\nwith open(output_filename, 'w') as f:\n    json.dump(final_answers, f, indent=2)",
-    "expires": 1755455810.6976779
-  },
   "plan:e77b166ec5cee009cd4a47ee162b6604": {
     "value": {
       "plan_id": "network_analysis_plan_001",
@@ -510,5 +486,3265 @@
       "metadata": {}
     },
     "expires": 1755456573.8761697
+  },
+  "plan:fc6a0f78d4b13c1988dc4ed2ead60f45": {
+    "value": {
+      "plan_id": "network_analysis_plan_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into a DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate network statistics",
+          "parameters": {
+            "graph": "graph"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "format": "png",
+            "max_size": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "format": "png",
+            "max_size": 100,
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Format the results into a JSON object",
+          "parameters": {
+            "edge_count": "edge_count",
+            "highest_degree_node": "highest_degree_node",
+            "average_degree": "average_degree",
+            "density": "density",
+            "shortest_path_alice_eve": "shortest_path_alice_eve",
+            "network_graph": "network_graph",
+            "degree_histogram": "degree_histogram"
+          },
+          "input_files": [],
+          "output_files": [
+            "final_results.json"
+          ],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 170,
+      "metadata": {}
+    },
+    "expires": 1755474601.6237686
+  },
+  "plan:2f7dce2cc595302b0b0d1f51542fad02": {
+    "value": {
+      "plan_id": "network_analysis_plan_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into a DataFrame",
+          "parameters": {
+            "file": "edges.csv",
+            "dataframe_name": "edges_df"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edges_df"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Analyze network/graph data",
+          "parameters": {
+            "dataframe": "edges_df",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate network statistics",
+          "parameters": {
+            "graph": "graph",
+            "calculations": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network with nodes labelled and edges shown",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "network",
+            "output_format": "base64_png"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution as a bar chart with green bars",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "degree_histogram",
+            "color": "green",
+            "output_format": "base64_png"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Format the results into a JSON object",
+          "parameters": {
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve",
+              "network_graph": "network_graph",
+              "degree_histogram": "degree_histogram"
+            },
+            "format": "json",
+            "output_file": "final_results.json"
+          },
+          "input_files": [],
+          "output_files": [
+            "final_results.json"
+          ],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755475453.8348932
+  },
+  "plan:5744cb9bd2616c67b3d375c47b0c6308": {
+    "value": {
+      "plan_id": "network_analysis_plan_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into a DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate network statistics",
+          "parameters": {
+            "graph": "graph"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Format the results into a JSON object",
+          "parameters": {
+            "edge_count": "edge_count",
+            "highest_degree_node": "highest_degree_node",
+            "average_degree": "average_degree",
+            "density": "density",
+            "shortest_path_alice_eve": "shortest_path_alice_eve",
+            "network_graph": "network_graph",
+            "degree_histogram": "degree_histogram"
+          },
+          "input_files": [],
+          "output_files": [
+            "final_results.json"
+          ],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755476988.4229789
+  },
+  "plan:5a0fa178508fd5492462d311c9d05fc3": {
+    "value": {
+      "plan_id": "network_analysis_plan_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into a DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edges_df"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "edges_df",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate network statistics",
+          "parameters": {
+            "graph": "graph"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size": 100,
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Format the results into a JSON object",
+          "parameters": {
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve",
+              "network_graph": "network_graph",
+              "degree_histogram": "degree_histogram"
+            },
+            "format": "json"
+          },
+          "input_files": [],
+          "output_files": [
+            "final_results.json"
+          ],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755477228.7392688
+  },
+  "plan:42f2a67a0d774f3a8df87b9998bdf4dc": {
+    "value": {
+      "plan_id": "network_analysis_plan_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into a DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edges_df"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "edges_df",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate network statistics",
+          "parameters": {
+            "graph": "graph"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png",
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Format the results into a JSON object",
+          "parameters": {
+            "edge_count": "edge_count",
+            "highest_degree_node": "highest_degree_node",
+            "average_degree": "average_degree",
+            "density": "density",
+            "shortest_path_alice_eve": "shortest_path_alice_eve",
+            "network_graph": "network_graph",
+            "degree_histogram": "degree_histogram"
+          },
+          "input_files": [],
+          "output_files": [
+            "final_results.json"
+          ],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755587251.2741241
+  },
+  "plan:4a3b50c4ca130e69006efa201b7b084a": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "labels": true,
+            "edges": true
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "type": "histogram",
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755597338.1009493
+  },
+  "plan:e707b2f3ee81e48398aec51b00ffdb3b": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create undirected graph from DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate graph metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network with nodes labelled and edges shown",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "network",
+            "label_nodes": true,
+            "output_format": "png_base64"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution as a bar chart with green bars",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "degree_histogram",
+            "color": "green",
+            "output_format": "png_base64"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve",
+              "network_graph": "network_graph",
+              "degree_histogram": "degree_histogram"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 220,
+      "metadata": {}
+    },
+    "expires": 1755598501.1892748
+  },
+  "plan:33aaf75b62e2852684e4402ee003fbd4": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "directed": false
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100,
+            "bar_color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755599433.8561125
+  },
+  "plan:9329a6ec6a9d0d98bfcea8f626ab4253": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100,
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755600342.686761
+  },
+  "plan:faa84e3c61ca51883a3361431949289a": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create undirected graph from DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "output_format": "png_base64",
+            "max_size_kb": 100,
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve",
+              "network_graph": "network_graph",
+              "degree_histogram": "degree_histogram"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "json_results"
+          ],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755601760.043314
+  },
+  "plan:60b72ae66540e60932e8181ae358d741": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "graph",
+          "description": "Find the node with the highest degree in the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "graph",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "graph",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve",
+          "parameters": {
+            "graph": "graph",
+            "source_node": "Alice",
+            "target_node": "Eve",
+            "metric": "shortest_path_length"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_008",
+          "type": "plot",
+          "description": "Create a network graph visualization",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "network",
+            "output_format": "base64",
+            "max_size_kb": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_009",
+          "type": "plot",
+          "description": "Create a histogram of node degrees",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "degree_histogram",
+            "output_format": "base64",
+            "max_size_kb": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_010",
+          "type": "export",
+          "description": "Export results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007",
+            "action_008",
+            "action_009"
+          ],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755603087.3943942
+  },
+  "plan:0ecd37f263c6528f563d4165af71345a": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Create a network graph",
+          "parameters": {
+            "graph": "graph",
+            "format": "png",
+            "max_size": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Create a degree histogram",
+          "parameters": {
+            "graph": "graph",
+            "format": "png",
+            "max_size": 100
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results to JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755605383.4801893
+  },
+  "plan:213a25708f9059517b5cfccf70524dee": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n- `network_graph`: base64 PNG string under 100kB\n- `degree_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create undirected graph from DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "directed": false
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Create network graph visualization",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "network",
+            "output_format": "png_base64",
+            "max_size": 100000
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Create degree histogram visualization",
+          "parameters": {
+            "graph": "graph",
+            "plot_type": "degree_histogram",
+            "output_format": "png_base64",
+            "max_size": 100000
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 50
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755610331.8274152
+  },
+  "plan:552eb9b537e8176ca24aae4ebaef2cd3": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Find the node with the highest degree in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "stats",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "stats",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve",
+          "parameters": {
+            "graph": "graph",
+            "source_node": "Alice",
+            "target_node": "Eve",
+            "path_type": "shortest"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_008",
+          "type": "export",
+          "description": "Export the results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results_json"
+          ],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755611784.8935082
+  },
+  "plan:fe0afc8a7787b494bdf25e68d64434ce": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv file into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Find the node with the highest degree in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "stats",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "stats",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve in the graph",
+          "parameters": {
+            "graph": "graph",
+            "source_node": "Alice",
+            "target_node": "Eve",
+            "path_type": "shortest"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_008",
+          "type": "export",
+          "description": "Export the results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results_json"
+          ],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 200,
+      "metadata": {}
+    },
+    "expires": 1755612743.3298368
+  },
+  "plan:c8adeea90ca8e831fb94e97335a01593": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv file into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source": "source",
+            "target": "target",
+            "directed": false
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "graph",
+          "description": "Find the node with the highest degree",
+          "parameters": {
+            "graph": "graph",
+            "metric": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "graph",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "graph",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "metric": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve",
+          "parameters": {
+            "graph": "graph",
+            "source": "Alice",
+            "target": "Eve",
+            "metric": "shortest_path_length"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_008",
+          "type": "export",
+          "description": "Export the results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755615325.4900362
+  },
+  "plan:f8b6fd5bbdeacc6b6bd63b41583f2f62": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv file into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Find the node with the highest degree in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "stats",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "stats",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve in the graph",
+          "parameters": {
+            "graph": "graph",
+            "source_node": "Alice",
+            "target_node": "Eve",
+            "path_type": "shortest"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_008",
+          "type": "export",
+          "description": "Export the results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results_json"
+          ],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755615699.1608877
+  },
+  "plan:9ae07e2761bed3e60b4c66a2ce19f6d5": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\n\nReturn a JSON object with keys:\n- `edge_count`: number\n- `highest_degree_node`: string\n- `average_degree`: number\n- `density`: number\n- `shortest_path_alice_eve`: number\n\n\nAnswer:\n1. How many edges are in the network?\n2. Which node has the highest degree?\n3. What is the average degree of the network?\n4. What is the network density?\n5. What is the length of the shortest path between Alice and Eve?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv file into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create an undirected graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "graph_type": "undirected"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Calculate the number of edges in the graph",
+          "parameters": {
+            "graph": "graph",
+            "stat_type": "edge_count"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "graph",
+          "description": "Find the node with the highest degree in the graph",
+          "parameters": {
+            "graph": "graph",
+            "operation": "highest_degree_node"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "highest_degree_node"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "graph",
+          "description": "Calculate the average degree of the graph",
+          "parameters": {
+            "graph": "graph",
+            "operation": "average_degree"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_degree"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "graph",
+          "description": "Calculate the density of the graph",
+          "parameters": {
+            "graph": "graph",
+            "operation": "density"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "density"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_007",
+          "type": "graph",
+          "description": "Find the shortest path between Alice and Eve in the graph",
+          "parameters": {
+            "graph": "graph",
+            "source_node": "Alice",
+            "target_node": "Eve",
+            "operation": "shortest_path_length"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_008",
+          "type": "export",
+          "description": "Export the results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "edge_count": "edge_count",
+              "highest_degree_node": "highest_degree_node",
+              "average_degree": "average_degree",
+              "density": "density",
+              "shortest_path_alice_eve": "shortest_path_alice_eve"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results_json"
+          ],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006",
+            "action_007"
+          ],
+          "estimated_time": 20
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755618052.981924
+  },
+  "plan:9db45f4d5e2f0ab40e359dc2710722d4": {
+    "value": {
+      "plan_id": "weather_analysis_001",
+      "task_description": "Analyze `sample-weather.csv`.\n\nReturn a JSON object with keys:\n- `average_temp_c`: number\n- `max_precip_date`: string\n- `min_temp_c`: number\n- `temp_precip_correlation`: number\n- `average_precip_mm`: number\n- `temp_line_chart`: base64 PNG string under 100kB\n- `precip_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. What is the average temperature in Celsius?\n2. On which date was precipitation highest?\n3. What is the minimum temperature recorded?\n4. What is the correlation between temperature and precipitation?\n5. What is the average precipitation in millimeters?\n6. Plot temperature over time as a line chart with a red line. Encode as base64 PNG.\n7. Plot precipitation as a histogram with orange bars. Encode as base64 PNG.\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load sample-weather.csv into DataFrame",
+          "parameters": {
+            "file": "sample-weather.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "stats",
+          "description": "Calculate average temperature, minimum temperature, and average precipitation",
+          "parameters": {
+            "dataframe": "df",
+            "operations": {
+              "average_temp_c": {
+                "operation": "mean",
+                "column": "temperature_c"
+              },
+              "min_temp_c": {
+                "operation": "min",
+                "column": "temperature_c"
+              },
+              "average_precip_mm": {
+                "operation": "mean",
+                "column": "precip_mm"
+              }
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_temp_c",
+            "min_temp_c",
+            "average_precip_mm"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Find the date with maximum precipitation",
+          "parameters": {
+            "dataframe": "df",
+            "operations": {
+              "max_precip_date": {
+                "operation": "idxmax",
+                "column": "precip_mm"
+              }
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "max_precip_date"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Calculate correlation between temperature and precipitation",
+          "parameters": {
+            "dataframe": "df",
+            "columns": [
+              "temperature_c",
+              "precip_mm"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "temp_precip_correlation"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot temperature over time as a line chart",
+          "parameters": {
+            "dataframe": "df",
+            "x": "date",
+            "y": "temperature_c",
+            "kind": "line",
+            "color": "red"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "temp_line_chart"
+          ],
+          "dependencies": [],
+          "estimated_time": 40
+        },
+        {
+          "action_id": "action_006",
+          "type": "plot",
+          "description": "Plot precipitation as a histogram",
+          "parameters": {
+            "dataframe": "df",
+            "column": "precip_mm",
+            "kind": "hist",
+            "color": "orange"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "precip_histogram"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_007",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "average_temp_c": "average_temp_c",
+              "max_precip_date": "max_precip_date",
+              "min_temp_c": "min_temp_c",
+              "temp_precip_correlation": "temp_precip_correlation",
+              "average_precip_mm": "average_precip_mm",
+              "temp_line_chart": "temp_line_chart",
+              "precip_histogram": "precip_histogram"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 180,
+      "metadata": {}
+    },
+    "expires": 1755619410.9407685
+  },
+  "plan:472329ea1598eeeb2a8d04e918aa784d": {
+    "value": {
+      "plan_id": "weather_analysis_001",
+      "task_description": "Analyze `sample-weather.csv`.\n\nReturn a JSON object with keys:\n- `average_temp_c`: number\n- `max_precip_date`: string\n- `min_temp_c`: number\n- `temp_precip_correlation`: number\n- `average_precip_mm`: number\n\n\nAnswer:\n1. What is the average temperature in Celsius?\n2. On which date was precipitation highest?\n3. What is the minimum temperature recorded?\n4. What is the correlation between temperature and precipitation?\n5. What is the average precipitation in millimeters?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load sample-weather.csv file into DataFrame",
+          "parameters": {
+            "file": "sample-weather.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "stats",
+          "description": "Calculate average temperature in Celsius",
+          "parameters": {
+            "dataframe": "df",
+            "column": "temperature_c",
+            "operation": "mean"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_temp_c"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Find the date with the highest precipitation",
+          "parameters": {
+            "dataframe": "df",
+            "column": "precip_mm",
+            "operation": "max_date"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "max_precip_date"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Calculate minimum temperature recorded",
+          "parameters": {
+            "dataframe": "df",
+            "column": "temperature_c",
+            "operation": "min"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "min_temp_c"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_005",
+          "type": "stats",
+          "description": "Calculate correlation between temperature and precipitation",
+          "parameters": {
+            "dataframe": "df",
+            "columns": [
+              "temperature_c",
+              "precip_mm"
+            ],
+            "operation": "correlation"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "temp_precip_correlation"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_006",
+          "type": "stats",
+          "description": "Calculate average precipitation in millimeters",
+          "parameters": {
+            "dataframe": "df",
+            "column": "precip_mm",
+            "operation": "mean"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_precip_mm"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_007",
+          "type": "export",
+          "description": "Export results as a JSON object",
+          "parameters": {
+            "format": "json",
+            "data": {
+              "average_temp_c": "average_temp_c",
+              "max_precip_date": "max_precip_date",
+              "min_temp_c": "min_temp_c",
+              "temp_precip_correlation": "temp_precip_correlation",
+              "average_precip_mm": "average_precip_mm"
+            }
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "results"
+          ],
+          "dependencies": [
+            "action_002",
+            "action_003",
+            "action_004",
+            "action_005",
+            "action_006"
+          ],
+          "estimated_time": 15
+        }
+      ],
+      "estimated_total_time": 120,
+      "metadata": {}
+    },
+    "expires": 1755619912.9831564
+  },
+  "plan:166a795d40035c87d06e91e1844f1fc4": {
+    "value": {
+      "plan_id": "weather_analysis_001",
+      "task_description": "Analyze `sample-weather.csv`.\n\nReturn a JSON object with keys:\n- `average_temp_c`: number\n- `max_precip_date`: string\n- `min_temp_c`: number\n- `temp_precip_correlation`: number\n- `average_precip_mm`: number\n\n\nAnswer:\n1. What is the average temperature in Celsius?\n2. On which date was precipitation highest?\n3. What is the minimum temperature recorded?\n4. What is the correlation between temperature and precipitation?\n5. What is the average precipitation in millimeters?\n\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load sample-weather.csv file into DataFrame",
+          "parameters": {
+            "file": "sample-weather.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "stats",
+          "description": "Calculate the average temperature in Celsius",
+          "parameters": {
+            "df": "df",
+            "column": "temperature_c",
+            "operation": "mean"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_temp_c"
+          ],
+          "dependencies": [],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_003",
+          "type": "stats",
+          "description": "Find the date with the highest precipitation",
+          "parameters": {
+            "df": "df",
+            "column": "precip_mm",
+            "operation": "max_date"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "max_precip_date"
+          ],
+          "dependencies": [],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_004",
+          "type": "stats",
+          "description": "Calculate the minimum temperature recorded",
+          "parameters": {
+            "df": "df",
+            "column": "temperature_c",
+            "operation": "min"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "min_temp_c"
+          ],
+          "dependencies": [],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_005",
+          "type": "stats",
+          "description": "Calculate the correlation between temperature and precipitation",
+          "parameters": {
+            "df": "df",
+            "column1": "temperature_c",
+            "column2": "precip_mm",
+            "operation": "correlation"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "temp_precip_correlation"
+          ],
+          "dependencies": [],
+          "estimated_time": 20
+        },
+        {
+          "action_id": "action_006",
+          "type": "stats",
+          "description": "Calculate the average precipitation in millimeters",
+          "parameters": {
+            "df": "df",
+            "column": "precip_mm",
+            "operation": "mean"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "average_precip_mm"
+          ],
+          "dependencies": [],
+          "estimated_time": 15
+        },
+        {
+          "action_id": "action_007",
+          "type": "export",
+          "description": "Export the results to a JSON object",
+          "parameters": {
+            "average_temp_c": "average_temp_c",
+            "max_precip_date": "max_precip_date",
+            "min_temp_c": "min_temp_c",
+            "temp_precip_correlation": "temp_precip_correlation",
+            "average_precip_mm": "average_precip_mm",
+            "format": "json"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "result"
+          ],
+          "dependencies": [],
+          "estimated_time": 10
+        }
+      ],
+      "estimated_total_time": 120,
+      "metadata": {}
+    },
+    "expires": 1755620781.3108406
+  },
+  "code:v2:load:action_001": {
+    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('sample-weather.csv')\n\n# Clean column names\ndf.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')\n\n# Convert data types\nfor col in df.columns:\n    if df[col].dtype == 'object':\n        try:\n            df[col] = pd.to_datetime(df[col])\n        except ValueError:\n            pass\n\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
+    "expires": 1755620786.939541
+  },
+  "code:load:action_001": {
+    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('sample-weather.csv')\n\n# Clean column names\ndf.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')\n\n# Convert data types\nfor col in df.columns:\n    if df[col].dtype == 'object':\n        try:\n            df[col] = pd.to_datetime(df[col])\n        except ValueError:\n            pass\n\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
+    "expires": 1755620788.8925147
+  },
+  "code:v2:stats:action_002": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the average temperature\navg_temp = df['temperature_c'].mean()\n\n# Convert numpy types to Python types for JSON serialization\navg_temp = float(avg_temp) if hasattr(avg_temp, 'item') else avg_temp\n\n# Print the result\nprint(f\"Average temperature: {avg_temp} Celsius\")\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add the result to the existing data\nexisting_data['average_temperature'] = avg_temp\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Save individual result for backward compatibility\nindividual_result = {\"average_temperature\": avg_temp}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620798.2556512
+  },
+  "code:stats:action_002": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the average temperature\navg_temp = df['temperature_c'].mean()\n\n# Convert numpy types to Python types for JSON serialization\navg_temp = float(avg_temp) if hasattr(avg_temp, 'item') else avg_temp\n\n# Print the result\nprint(f\"Average temperature: {avg_temp} Celsius\")\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add the result to the existing data\nexisting_data['average_temperature'] = avg_temp\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Save individual result for backward compatibility\nindividual_result = {\"average_temperature\": avg_temp}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620799.9785879
+  },
+  "code:v2:stats:action_003": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Find the date with the highest precipitation\nmax_precip_date = df[df['precip_mm'] == df['precip_mm'].max()]['date'].values[0]\n\n# Convert numpy types to Python types for JSON serialization\nmax_precip_date = str(max_precip_date) if hasattr(max_precip_date, 'item') else max_precip_date\nprint(f\"Date with highest precipitation: {max_precip_date}\")\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add your result to the existing data\nexisting_data['max_precip_date'] = max_precip_date\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Also save individual result for backward compatibility\nindividual_result = {\"max_precip_date\": max_precip_date}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620810.754657
+  },
+  "code:stats:action_003": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Find the date with the highest precipitation\nmax_precip_date = df[df['precip_mm'] == df['precip_mm'].max()]['date'].values[0]\n\n# Convert numpy types to Python types for JSON serialization\nmax_precip_date = str(max_precip_date) if hasattr(max_precip_date, 'item') else max_precip_date\nprint(f\"Date with highest precipitation: {max_precip_date}\")\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add your result to the existing data\nexisting_data['max_precip_date'] = max_precip_date\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Also save individual result for backward compatibility\nindividual_result = {\"max_precip_date\": max_precip_date}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620812.4030247
+  },
+  "code:v2:stats:action_004": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate minimum temperature\nmin_temp = df['temperature_c'].min()\n\n# Convert numpy types to Python types for JSON serialization\nmin_temp = float(min_temp) if hasattr(min_temp, 'item') else min_temp\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add the result to the existing data\nexisting_data['min_temperature'] = min_temp\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Save individual result for backward compatibility\nindividual_result = {\"min_temperature\": min_temp}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620821.0231879
+  },
+  "code:stats:action_004": {
+    "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate minimum temperature\nmin_temp = df['temperature_c'].min()\n\n# Convert numpy types to Python types for JSON serialization\nmin_temp = float(min_temp) if hasattr(min_temp, 'item') else min_temp\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add the result to the existing data\nexisting_data['min_temperature'] = min_temp\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Save individual result for backward compatibility\nindividual_result = {\"min_temperature\": min_temp}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620822.7274163
+  },
+  "code:v2:stats:action_005": {
+    "value": "import pandas as pd\nimport json\nimport numpy as np\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate correlation\ncorrelation = df[\"temperature_c\"].corr(df[\"precip_mm\"])\n\n# Convert numpy types to Python types for JSON serialization\ncorrelation = correlation.item() if hasattr(correlation, 'item') else correlation\n\n# Print the result\nprint(f\"Correlation between temperature and precipitation: {correlation}\")\n\n# Save results to JSON files\noutput_file = 'output.json'\nexisting_data = {}\n\n# Read existing output if it exists\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add your result to the existing data\nexisting_data['correlation'] = correlation\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Also save individual result for backward compatibility\nindividual_result = {\"correlation\": correlation}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
+    "expires": 1755620833.6321151
+  },
+  "code:v2:export:action_007": {
+    "value": "import json\nimport pandas as pd\n\n# Load the data\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the required statistics\naverage_temp_c = df['temperature_c'].mean()\nmax_precip_date = df['precip_mm'].idxmax()\nmin_temp_c = df['temperature_c'].min()\ntemp_precip_correlation = df['temperature_c'].corr(df['precip_mm'])\naverage_precip_mm = df['precip_mm'].mean()\n\n# Create a dictionary to hold the results\nresults = {\n    \"average_temp_c\": str(average_temp_c),\n    \"max_precip_date\": str(max_precip_date),\n    \"min_temp_c\": str(min_temp_c),\n    \"temp_precip_correlation\": str(temp_precip_correlation),\n    \"average_precip_mm\": str(average_precip_mm)\n}\n\n# Export the results to a JSON file\nwith open('output.json', 'w') as f:\n    json.dump(results, f)",
+    "expires": 1755620869.9512517
+  },
+  "code:export:action_007": {
+    "value": "import json\nimport pandas as pd\n\n# Load the data\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the required statistics\naverage_temp_c = df['temperature_c'].mean()\nmax_precip_date = df['precip_mm'].idxmax()\nmin_temp_c = df['temperature_c'].min()\ntemp_precip_correlation = df['temperature_c'].corr(df['precip_mm'])\naverage_precip_mm = df['precip_mm'].mean()\n\n# Create a dictionary to hold the results\nresults = {\n    \"average_temp_c\": str(average_temp_c),\n    \"max_precip_date\": str(max_precip_date),\n    \"min_temp_c\": str(min_temp_c),\n    \"temp_precip_correlation\": str(temp_precip_correlation),\n    \"average_precip_mm\": str(average_precip_mm)\n}\n\n# Export the results to a JSON file\nwith open('output.json', 'w') as f:\n    json.dump(results, f)",
+    "expires": 1755620871.644605
   }
 }

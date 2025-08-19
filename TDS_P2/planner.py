@@ -191,25 +191,25 @@ class PlannerModule:
     
     def _get_system_prompt(self) -> str:
         """Get the system prompt for plan generation"""
-        return """You are an expert data analyst AI that creates detailed execution plans for data analysis tasks.
+        return """You are an expert data analyst AI that creates execution plans for data analysis tasks.
 
-Given a user's questions and available files (or embedded data), create a JSON execution plan that breaks down the task into discrete actions.
+CORE PRINCIPLES:
+1. READ and UNDERSTAND the user's specific questions first
+2. ANALYZE what data and analysis is actually required
+3. CHOOSE actions based on actual needs, not assumptions
+4. ORDER actions logically based on data dependencies
+5. ADAPT the plan to the specific task requirements
 
-IMPORTANT: Choose action types based on the data source:
-- Use "llm_analysis" ONLY when data is embedded directly in the questions
-- Use "load", "graph", "plot" when external files are required
-- Use "scrape" when web data is needed
-
-Available action types:
-- llm_analysis: Analyze embedded data directly using LLM (use this for data embedded in questions)
-- load: Load data files into DataFrames (use when external files like edges.csv are needed)
-- graph: Analyze network/graph data (use for network analysis)
-- plot: Create visualizations (use for generating charts and graphs)
+AVAILABLE ACTION TYPES:
+- llm_analysis: Analyze embedded data directly using LLM
+- load: Load data files into DataFrames
+- stats: Basic calculations, counting, statistics
+- graph: Network/graph analysis, algorithms
+- plot: Create visualizations, charts, graphs
+- export: Format and export results
 - scrape: Extract data from web pages
 - s3_query: Query large datasets in S3/parquet
 - sql: Execute SQL queries on loaded data
-- stats: Perform statistical computations
-- export: Format and export results
 - api_call: Make API requests
 - db_query: Query databases
 - sheets_load: Load Google Sheets/Excel
@@ -218,15 +218,23 @@ Available action types:
 - text_analysis: NLP/text processing
 - image_analysis: Extract data from images
 
+PLANNING APPROACH:
+- Start with data loading if files are provided
+- Add analysis actions based on what questions actually ask for
+- Add visualization actions ONLY if charts/graphs are explicitly requested
+- Always end with export to format results
+- Don't create unnecessary dependencies between actions
+- Let the task requirements drive the plan, not predefined templates
+- CRITICAL: Be literal about user requests - don't add extra features they didn't ask for
+
 Requirements:
 1. Each action must have a unique action_id
 2. Actions should be in logical execution order
-3. Estimate realistic time for each action (max 180s total)
-4. For embedded data, use llm_analysis action
-5. For external files, use appropriate file-based actions
-6. Include proper dependencies between actions
-7. Be specific about inputs and outputs
-8. Final export action must produce results in the order questions were asked
+3. Estimate realistic time for each action (max 300s total)
+4. Include proper dependencies between actions
+5. Be specific about inputs and outputs
+6. Final export action must produce results in the requested format
+7. CRITICAL: When generating code, use ONLY pure Python - NO markdown formatting, NO ```python blocks
 
 Return ONLY valid JSON with this structure:
 {
@@ -235,13 +243,12 @@ Return ONLY valid JSON with this structure:
   "actions": [
     {
       "action_id": "action_001",
-      "type": "llm_analysis",
-      "description": "Analyze embedded data to answer questions",
+      "type": "load",
+      "description": "Load data file into DataFrame",
       "parameters": {
-        "data_type": "csv_embedded",
-        "questions": ["question1", "question2"]
+        "file": "filename.csv"
       },
-      "output_variables": ["analysis_results"],
+      "output_variables": ["df"],
       "estimated_time": 30
     }
   ]
@@ -271,100 +278,123 @@ Available files:
         logger.info(f"🔍 PLANNER DEBUG: Task type detected: {task_analysis['task_type']}")
         logger.info(f"🔍 PLANNER DEBUG: Task analysis: {task_analysis}")
         
-        if task_analysis["task_type"] == "network_analysis":
-            prompt += f"""
-NETWORK ANALYSIS TASK DETECTED:
-- Task type: {task_analysis["task_type"]}
-- Required files: {', '.join(task_analysis["referenced_files"])}
-- Visualization required: {task_analysis["requires_visualization"]}
-
-IMPORTANT: Create a plan with this sequence:
-1. load: Load the edges.csv file
-2. graph: Perform network analysis (degree, density, shortest paths)
-3. plot: Generate network graph and degree histogram
-4. export: Format results as JSON with required fields
-
-Use these action types: load, graph, plot, export
-"""
-        # Web scraping removed - not needed for CSV analysis
-        elif task_analysis["has_embedded_data"]:
-            prompt += f"""
-EMBEDDED DATA DETECTED:
-- Task type: {task_analysis["task_type"]}
-- Data preview: {task_analysis["data_preview"]}
-
-IMPORTANT: Use "llm_analysis" action type since data is embedded in questions.
-"""
-        elif task_analysis["task_type"] == "csv_analysis" or any(f.endswith('.csv') for f in job_request.files):
-            prompt += f"""
-CSV ANALYSIS TASK DETECTED:
-- Task type: {task_analysis["task_type"]}
-- CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
-
-IMPORTANT: For CSV analysis, use this sequence:
-1. load: Load the CSV file(s) into DataFrames
-2. stats: Perform calculations (sum, average, count, etc.)
-3. export: Format results as requested
-
-Use these action types: load, stats, export
-DO NOT use SQL for simple CSV calculations - use stats instead.
-DO NOT use web scraping - this is CSV data analysis, not web data collection.
-DO NOT mention "Data was scraped successfully" - focus on the actual calculations.
-
-CRITICAL: The export action MUST specify output_files to save the final results.
-Example export action:
-{{
-  "action_id": "action_003",
-  "type": "export",
-  "description": "Format the results into a JSON object",
-  "output_files": ["final_results.json"],
-  "estimated_time": 30
-}}
-"""
-        elif task_analysis["task_type"] == "network_analysis" or any(f.endswith('.csv') for f in job_request.files if 'source' in f or 'target' in f):
-            prompt += f"""
-NETWORK ANALYSIS TASK DETECTED:
-- Task type: {task_analysis["task_type"]}
-- CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
-
-IMPORTANT: For network analysis, use this sequence:
-1. load: Load the CSV file(s) into DataFrames
-2. graph: Perform network analysis (degree, density, shortest paths)
-3. plot: Generate network graph and degree histogram
-4. export: Format results as requested
-
-Use these action types: load, graph, plot, export
-The graph action should analyze network metrics
-The plot action should generate visualizations
-DO NOT use web scraping - this is network data analysis, not web data collection.
-
-CRITICAL: The export action MUST specify output_files to save the final results.
-Example export action:
-{{
-  "action_id": "action_004",
-  "type": "export",
-  "description": "Format the results into a JSON object",
-  "output_files": ["final_results.json"],
-  "estimated_time": 30
-}}
-"""
-        else:
-            prompt += f"""
-GENERAL ANALYSIS TASK:
-- Task type: {task_analysis["task_type"]}
-- External files required: {task_analysis["requires_external_files"]}
-
-IMPORTANT: Choose appropriate actions based on the task requirements.
-"""
+        # COMMENTED OUT: Old hardcoded task-specific prompts (kept as backup)
+        # These were too rigid and didn't work well for general cases
+        # ROLLBACK INSTRUCTIONS: If the new generic prompts fail, uncomment these lines
+        # and comment out the "NEW GENERIC PROMPT" section below to restore functionality
         
-        prompt += """
-Create an execution plan that:
-1. Addresses all questions in the task
-2. Uses appropriate action types for each step
-3. Follows the recommended action sequence for the task type
-4. Handles errors gracefully
-5. Completes within 180 seconds
-6. Returns results in the requested format
+        # OLD PROMPTS (COMMENTED OUT):
+        # if task_analysis["task_type"] == "network_analysis":
+        #     prompt += f"""
+        # NETWORK ANALYSIS TASK DETECTED:
+        # - Task type: {task_analysis["task_type"]}
+        # - Required files: {', '.join(task_analysis["referenced_files"])}
+        # - Visualization required: {task_analysis["requires_visualization"]}
+        # 
+        # IMPORTANT: Create a plan with this sequence:
+        # 1. load: Load the edges.csv file
+        # 2. graph: Perform network analysis (degree, density, shortest paths)
+        # 3. plot: Generate network graph and degree histogram
+        # 4. export: Format results as JSON with required fields
+        # 
+        # Use these action types: load, graph, plot, export
+        # """
+        # # Web scraping removed - not needed for CSV analysis
+        # elif task_analysis["has_embedded_data"]:
+        #     prompt += f"""
+        # EMBEDDED DATA DETECTED:
+        # - Task type: {task_analysis["task_type"]}
+        # - Data preview: {task_analysis["data_preview"]}
+        # 
+        # IMPORTANT: Use "llm_analysis" action type since data is embedded in questions.
+        # """
+        # elif task_analysis["task_type"] == "csv_analysis" or any(f.endswith('.csv') for f in job_request.files):
+        #     prompt += f"""
+        # CSV ANALYSIS TASK DETECTED:
+        # - Task type: {task_analysis["task_type"]}
+        # - CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
+        # 
+        # IMPORTANT: For CSV analysis, use this sequence:
+        # 1. load: Load the CSV file(s) into DataFrames
+        # 2. stats: Perform calculations (sum, average, count, etc.)
+        # 3. export: Format results as requested
+        # 
+        # Use these action types: load, stats, export
+        # DO NOT use SQL for simple CSV calculations - use stats instead.
+        # DO NOT use web scraping - this is CSV data analysis, not web data collection.
+        # DO NOT mention "Data was scraped successfully" - focus on the actual calculations.
+        # 
+        # CRITICAL: The export action MUST specify output_files to save the final results.
+        # Example export action:
+        # {{
+        #   "action_id": "action_003",
+        #   "type": "export",
+        #   "description": "Format the results into a JSON object",
+        #   "output_files": ["final_results.json"],
+        #   "estimated_time": 30
+        # }}
+        # """
+        # elif task_analysis["task_type"] == "network_analysis" or any(f.endswith('.csv') for f in job_request.files if 'source' in f or 'target' in f):
+        #     prompt += f"""
+        # NETWORK ANALYSIS TASK DETECTED:
+        # - Task type: {task_analysis["task_type"]}
+        # - CSV files: {[f for f in job_request.files if f.endswith('.csv')]}
+        # 
+        # IMPORTANT: For network analysis, use this sequence:
+        # 1. load: Load the CSV file(s) into DataFrames
+        # 2. graph: Perform network analysis (degree, density, shortest paths)
+        # 3. plot: Generate network graph and degree histogram
+        # 4. export: Format results as requested
+        # 
+        # Use these action types: load, graph, plot, export
+        # The graph action should analyze network metrics
+        # The plot action should generate visualizations
+        # DO NOT use web scraping - this is network data analysis, not web data collection.
+        # 
+        # CRITICAL: The export action MUST specify output_files to save the final results.
+        # Example export action:
+        # {{
+        #   "action_id": "action_004",
+        #   "type": "export",
+        #   "description": "Format the results into a JSON object",
+        #   "output_files": ["final_results.json"],
+        #   "estimated_time": 30
+        # }}
+        # """
+        # else:
+        #     prompt += f"""
+        # GENERAL ANALYSIS TASK:
+        # - Task type: {task_analysis["task_type"]}
+        # - External files required: {task_analysis["requires_external_files"]}
+        # 
+        # IMPORTANT: Choose appropriate actions based on the task requirements.
+        # """
+        
+        # NEW GENERIC PROMPT: Intelligent planning based on actual requirements
+        prompt += f"""
+TASK ANALYSIS:
+Questions: {job_request.questions}
+Available files: {[f for f in job_request.files] if job_request.files else "None"}
+
+PLANNING INSTRUCTIONS:
+1. Read the questions LITERALLY - what is the user actually asking for?
+2. Determine what data analysis is required based on the specific questions
+3. Choose appropriate actions based on actual needs, not assumptions
+4. Order actions logically (data loading → analysis → export)
+5. Don't assume specific analysis types - let the questions guide you
+6. If questions ask for basic metrics (counts, averages), use 'stats' action
+7. If questions ask for complex analysis (algorithms, paths), use 'graph' action
+8. If questions ask for charts/visuals, use 'plot' action
+9. Always end with 'export' to format results
+
+CRITICAL RULES:
+- Only include visualization actions (plot) if the questions EXPLICITLY ask for charts, graphs, or images
+- If questions only ask for numerical values, text, or data, do NOT include plot actions
+- Be literal about user requests - don't add extra features they didn't ask for
+- Don't be "helpful" by adding visualizations unless specifically requested
+
+Create an execution plan that directly addresses the user's questions.
+The plan should be intelligent and adaptive, not rigid or template-based.
 
 Generate the JSON plan now:"""
         

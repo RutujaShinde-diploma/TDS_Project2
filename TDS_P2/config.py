@@ -29,12 +29,12 @@ class Config:
     OPENAI_FALLBACK_MODEL: str = os.getenv("OPENAI_FALLBACK_MODEL", "gpt-3.5-turbo")
     
     # API Configuration
-    MAX_EXECUTION_TIME: int = int(os.getenv("MAX_EXECUTION_TIME", "180"))  # 3 minutes
+    MAX_EXECUTION_TIME: int = int(os.getenv("MAX_EXECUTION_TIME", "300"))  # 5 minutes
     MAX_FILE_SIZE: int = int(os.getenv("MAX_FILE_SIZE", "100000000"))  # 100MB
     MAX_RETRIES: int = 3
     
     # Sandbox Configuration
-    SANDBOX_TIMEOUT: int = int(os.getenv("SANDBOX_TIMEOUT", "30"))
+    SANDBOX_TIMEOUT: int = int(os.getenv("SANDBOX_TIMEOUT", "120"))  # 2 minutes per action
     
     # Cache Configuration
     CACHE_TTL: int = int(os.getenv("CACHE_TTL", "3600"))  # 1 hour

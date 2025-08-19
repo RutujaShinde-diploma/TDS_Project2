@@ -55,8 +55,8 @@ class ExecutionPlan(BaseModel):
     
     @validator('estimated_total_time')
     def validate_time(cls, v):
-        if v > 180:  # 3 minutes max
-            raise ValueError("Estimated time cannot exceed 180 seconds")
+        if v > 300:  # 5 minutes max (updated to match config)
+            raise ValueError("Estimated time cannot exceed 300 seconds")
         return v
 
 class ActionResult(BaseModel):

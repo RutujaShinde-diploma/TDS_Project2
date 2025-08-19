@@ -116,6 +116,38 @@ class SimpleStorage:
             logger.error(f"Failed to search keys: {e}")
             return []
     
+    def list_keys(self) -> List[str]:
+        """List all cache keys"""
+        try:
+            return list(self.cache.keys())
+        except Exception as e:
+            logger.error(f"Failed to list keys: {e}")
+            return []
+    
+    def clear_all(self) -> bool:
+        """Clear all cache entries"""
+        try:
+            self.cache.clear()
+            self._save_to_files()
+            logger.info("All cache entries cleared")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear all cache: {e}")
+            return False
+    
+    def clear_pattern(self, pattern: str) -> bool:
+        """Clear cache entries matching a pattern"""
+        try:
+            keys_to_clear = self.search_keys(pattern)
+            for key in keys_to_clear:
+                del self.cache[key]
+            self._save_to_files()
+            logger.info(f"Cleared {len(keys_to_clear)} cache entries matching pattern: {pattern}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to clear pattern cache: {e}")
+            return False
+    
     def get_stats(self) -> Dict[str, Any]:
         """Get storage statistics"""
         try:

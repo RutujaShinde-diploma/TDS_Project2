@@ -1,0 +1,17 @@
+Analyze `sample-weather.csv`.
+
+Return a JSON object with keys:
+- `average_temp_c`: number
+- `max_precip_date`: string
+- `min_temp_c`: number
+- `temp_precip_correlation`: number
+- `average_precip_mm`: number
+
+
+Answer:
+1. What is the average temperature in Celsius?
+2. On which date was precipitation highest?
+3. What is the minimum temperature recorded?
+4. What is the correlation between temperature and precipitation?
+5. What is the average precipitation in millimeters?
+

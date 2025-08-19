@@ -142,6 +142,75 @@ async def get_storage_status():
         logger.error(f"Error getting storage status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get storage status: {str(e)}")
 
+@app.get("/api/cache/status")
+async def get_cache_status():
+    """Get cache status and statistics"""
+    try:
+        stats = simple_storage.get_stats()
+        return {
+            "status": "ok",
+            "cache_type": "simple_file_based",
+            "stats": stats,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting cache status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get cache status: {str(e)}")
+
+@app.post("/api/cache/clear")
+async def clear_all_caches():
+    """Clear all caches to force regeneration"""
+    try:
+        # Clear all cached data
+        success = simple_storage.clear_all()
+        if success:
+            return {
+                "status": "success",
+                "message": "All caches cleared successfully",
+                "timestamp": time.time()
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear caches")
+    except Exception as e:
+        logger.error(f"Error clearing caches: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear caches: {str(e)}")
+
+@app.post("/api/cache/clear/plan")
+async def clear_plan_cache():
+    """Clear only plan cache"""
+    try:
+        # Clear plan-related cache entries using pattern matching
+        success = simple_storage.clear_pattern("plan:*")
+        if success:
+            return {
+                "status": "success",
+                "message": "Plan cache cleared successfully",
+                "timestamp": time.time()
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear plan cache")
+    except Exception as e:
+        logger.error(f"Error clearing plan cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear plan cache: {str(e)}")
+
+@app.post("/api/cache/clear/code")
+async def clear_code_cache():
+    """Clear only code cache"""
+    try:
+        # Clear code-related cache entries using pattern matching
+        success = simple_storage.clear_pattern("code:*")
+        if success:
+            return {
+                "status": "success",
+                "message": "Code cache cleared successfully",
+                "timestamp": time.time()
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to clear code cache")
+    except Exception as e:
+        logger.error(f"Error clearing code cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear code cache: {str(e)}")
+
 @app.post("/api/")
 async def analyze_data(
     request: Request,
@@ -276,7 +345,7 @@ async def analyze_data(
         logger.info(f"Processing job {job_id} synchronously")
         
         # Set execution timeout to prevent hanging (5 minutes max)
-        execution_timeout = 300  # 5 minutes in seconds
+        execution_timeout = config.MAX_EXECUTION_TIME  # Use config value (5 minutes)
         logger.info(f"⏱️ Setting execution timeout to {execution_timeout} seconds for job {job_id}")
         
         # Generate execution plan
