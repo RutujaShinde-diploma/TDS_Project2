@@ -3703,13 +3703,9 @@
     },
     "expires": 1755620781.3108406
   },
-  "code:v2:load:action_001": {
-    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('sample-weather.csv')\n\n# Clean column names\ndf.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')\n\n# Convert data types\nfor col in df.columns:\n    if df[col].dtype == 'object':\n        try:\n            df[col] = pd.to_datetime(df[col])\n        except ValueError:\n            pass\n\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
-    "expires": 1755620786.939541
-  },
   "code:load:action_001": {
-    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('sample-weather.csv')\n\n# Clean column names\ndf.columns = df.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', '')\n\n# Convert data types\nfor col in df.columns:\n    if df[col].dtype == 'object':\n        try:\n            df[col] = pd.to_datetime(df[col])\n        except ValueError:\n            pass\n\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
-    "expires": 1755620788.8925147
+    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('edges.csv')\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
+    "expires": 1755629755.5092869
   },
   "code:v2:stats:action_002": {
     "value": "import pandas as pd\nimport json\nimport os\n\n# Load CSV file\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the average temperature\navg_temp = df['temperature_c'].mean()\n\n# Convert numpy types to Python types for JSON serialization\navg_temp = float(avg_temp) if hasattr(avg_temp, 'item') else avg_temp\n\n# Print the result\nprint(f\"Average temperature: {avg_temp} Celsius\")\n\n# Read existing output if it exists\noutput_file = 'output.json'\nexisting_data = {}\n\nif os.path.exists(output_file):\n    with open(output_file, 'r') as f:\n        existing_data = json.load(f)\n\n# Add the result to the existing data\nexisting_data['average_temperature'] = avg_temp\n\n# Save the updated output\nwith open(output_file, 'w') as f:\n    json.dump(existing_data, f, indent=2)\n\n# Save individual result for backward compatibility\nindividual_result = {\"average_temperature\": avg_temp}\nindividual_file = 'stats_result.json'\nwith open(individual_file, 'w') as f:\n    json.dump(individual_result, f, indent=2)",
@@ -3746,5 +3742,338 @@
   "code:export:action_007": {
     "value": "import json\nimport pandas as pd\n\n# Load the data\ndf = pd.read_csv('sample-weather.csv')\n\n# Calculate the required statistics\naverage_temp_c = df['temperature_c'].mean()\nmax_precip_date = df['precip_mm'].idxmax()\nmin_temp_c = df['temperature_c'].min()\ntemp_precip_correlation = df['temperature_c'].corr(df['precip_mm'])\naverage_precip_mm = df['precip_mm'].mean()\n\n# Create a dictionary to hold the results\nresults = {\n    \"average_temp_c\": str(average_temp_c),\n    \"max_precip_date\": str(max_precip_date),\n    \"min_temp_c\": str(min_temp_c),\n    \"temp_precip_correlation\": str(temp_precip_correlation),\n    \"average_precip_mm\": str(average_precip_mm)\n}\n\n# Export the results to a JSON file\nwith open('output.json', 'w') as f:\n    json.dump(results, f)",
     "expires": 1755620871.644605
+  },
+  "plan:bd195a3948d77313be0bc77bff15c6e4": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\r\n\r\nReturn a JSON object with keys:\r\n- `edge_count`: number\r\n- `highest_degree_node`: string\r\n- `average_degree`: number\r\n- `density`: number\r\n- `shortest_path_alice_eve`: number\r\n- `network_graph`: base64 PNG string under 100kB\r\n- `degree_histogram`: base64 PNG string under 100kB\r\n\r\nAnswer:\r\n1. How many edges are in the network?\r\n2. Which node has the highest degree?\r\n3. What is the average degree of the network?\r\n4. What is the network density?\r\n5. What is the length of the shortest path between Alice and Eve?\r\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\r\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\r\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target",
+            "directed": false
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ],
+            "shortest_path_source": "Alice",
+            "shortest_path_target": "Eve"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "labels": true,
+            "edges": true
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "type": "histogram",
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755626933.6270545
+  },
+  "code:v2:load:action_001": {
+    "value": "import pandas as pd\n\n# Load CSV\ndf = pd.read_csv('edges.csv')\nprint(f\"Loaded {len(df)} rows, {len(df.columns)} columns\")\nprint(df.head())\nprint(df.info())",
+    "expires": 1755626937.2624552
+  },
+  "code:v2:graph:action_002": {
+    "value": "import pandas as pd\nimport networkx as nx\nimport matplotlib.pyplot as plt\nimport base64\nimport os\n\n# Load data file\ndata_file = 'edges.csv'\n\n# Handle different file formats\nif data_file.endswith('.csv'):\n    df_edges = pd.read_csv(data_file)\nelse:\n    raise Exception(f\"Unsupported file format: {data_file}\")\n\n# Clean column names and data types\ndf_edges.columns = df_edges.columns.str.lower().str.replace(' ', '_', regex=False)\ndf_edges = df_edges.apply(pd.to_numeric, errors='coerce')\n\n# Create graph based on action parameters\nG = nx.from_pandas_edgelist(df_edges, 'source', 'target', create_using=nx.Graph())\n\n# Print data summary\nprint(f\"Number of nodes: {G.number_of_nodes()}\")\nprint(f\"Number of edges: {G.number_of_edges()}\")\n\n# Draw the graph\nplt.figure(figsize=(10, 10))\nnx.draw(G, with_labels=True, node_color='skyblue', node_size=1500, edge_color='white')\nplt.savefig(\"graph.png\")\n\n# Convert the image to base64\nwith open(\"graph.png\", \"rb\") as image_file:\n    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')\n\n# Print the base64 string\nprint(encoded_string)",
+    "expires": 1755626949.8363042
+  },
+  "code:graph:action_002": {
+    "value": "import pandas as pd\nimport networkx as nx\nimport matplotlib.pyplot as plt\nimport base64\nimport os\n\n# Load data file\ndata_file = 'edges.csv'\n\n# Handle different file formats\nif data_file.endswith('.csv'):\n    df_edges = pd.read_csv(data_file)\nelse:\n    raise Exception(f\"Unsupported file format: {data_file}\")\n\n# Clean column names and data types\ndf_edges.columns = df_edges.columns.str.lower().str.replace(' ', '_', regex=False)\ndf_edges = df_edges.apply(pd.to_numeric, errors='coerce')\n\n# Create graph based on action parameters\nG = nx.from_pandas_edgelist(df_edges, 'source', 'target', create_using=nx.Graph())\n\n# Print data summary\nprint(f\"Number of nodes: {G.number_of_nodes()}\")\nprint(f\"Number of edges: {G.number_of_edges()}\")\n\n# Draw the graph\nplt.figure(figsize=(10, 10))\nnx.draw(G, with_labels=True, node_color='skyblue', node_size=1500, edge_color='white')\nplt.savefig(\"graph.png\")\n\n# Convert the image to base64\nwith open(\"graph.png\", \"rb\") as image_file:\n    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')\n\n# Print the base64 string\nprint(encoded_string)",
+    "expires": 1755629765.2891924
+  },
+  "code:v2:graph:action_003": {
+    "value": "import pandas as pd\nimport networkx as nx\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport numpy as np\nimport base64\nimport io\n\n# Load data\ndf = pd.read_csv('edges.csv')\n\n# Create graph\nG = nx.from_pandas_edgelist(df, source='source', target='target')\n\n# Calculate metrics\nedge_count = G.number_of_edges()\nhighest_degree_node = max(dict(G.degree()).items(), key=lambda x: x[1])\naverage_degree = np.mean(list(dict(G.degree()).values()))\ndensity = nx.density(G)\nshortest_path = nx.shortest_path(G, source='Alice', target='Eve')\n\n# Print results\nprint(f'Edge count: {edge_count}')\nprint(f'Highest degree node: {highest_degree_node}')\nprint(f'Average degree: {average_degree}')\nprint(f'Density: {density}')\nprint(f'Shortest path from Alice to Eve: {shortest_path}')\n\n# Plot graph\nplt.figure(figsize=(10, 10))\nnx.draw(G, with_labels=True)\nplt.savefig('graph.png')\n\n# Convert to base64\nwith open('graph.png', 'rb') as f:\n    image_encoded = base64.b64encode(f.read()).decode('utf-8')\n\nprint(f'Graph image in base64: {image_encoded}')",
+    "expires": 1755626967.1442678
+  },
+  "code:graph:action_003": {
+    "value": "import pandas as pd\nimport networkx as nx\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport numpy as np\nimport base64\nimport io\n\n# Load data\ndf = pd.read_csv('edges.csv')\n\n# Create graph\nG = nx.from_pandas_edgelist(df, source='source', target='target')\n\n# Calculate metrics\nedge_count = G.number_of_edges()\nhighest_degree_node = max(dict(G.degree()).items(), key=lambda x: x[1])\naverage_degree = np.mean(list(dict(G.degree()).values()))\ndensity = nx.density(G)\nshortest_path = nx.shortest_path(G, source='Alice', target='Eve')\n\n# Print results\nprint(f'Edge count: {edge_count}')\nprint(f'Highest degree node: {highest_degree_node}')\nprint(f'Average degree: {average_degree}')\nprint(f'Density: {density}')\nprint(f'Shortest path from Alice to Eve: {shortest_path}')\n\n# Plot graph\nplt.figure(figsize=(10, 10))\nnx.draw(G, with_labels=True)\nplt.savefig('graph.png')\n\n# Convert to base64\nwith open('graph.png', 'rb') as f:\n    image_encoded = base64.b64encode(f.read()).decode('utf-8')\n\nprint(f'Graph image in base64: {image_encoded}')",
+    "expires": 1755629795.2470407
+  },
+  "code:v2:plot:action_004": {
+    "value": "import matplotlib\nmatplotlib.use('Agg')  # Non-interactive backend\nimport matplotlib.pyplot as plt\nimport pandas as pd\nimport networkx as nx\nimport base64\nfrom io import BytesIO\n\n# Load edges data\nedges = pd.read_csv('edges.csv')\n\n# Create graph\nG = nx.from_pandas_edgelist(edges)\n\n# Create plot\nplt.figure(figsize=(10, 6))\nnx.draw(G, with_labels=True)\nplt.title('Network Graph')\nplt.xlabel('Nodes')\nplt.ylabel('Edges')\n\n# Save to file\noutput_file = 'graph.png'\nplt.savefig(output_file, dpi=150, bbox_inches='tight')\n\n# Convert to base64\nbuffer = BytesIO()\nplt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')\nbuffer.seek(0)\nimg_base64 = base64.b64encode(buffer.getvalue()).decode()\nbuffer.close()\nplt.close()\n\n# Save base64 to JSON\nimport json\nresult = {\"plot_base64\": img_base64, \"plot_file\": output_file}\njson_file = output_file.replace('.png', '_base64.json')\nwith open(json_file, 'w') as f:\n    json.dump(result, f, indent=2)\n\nprint(f\"Plot saved to {output_file} and base64 data to {json_file}\")",
+    "expires": 1755626990.4053032
+  },
+  "code:plot:action_004": {
+    "value": "import matplotlib\nmatplotlib.use('Agg')  # Non-interactive backend\nimport matplotlib.pyplot as plt\nimport pandas as pd\nimport networkx as nx\nimport base64\nfrom io import BytesIO\n\n# Load edges data\nedges = pd.read_csv('edges.csv')\n\n# Create graph\nG = nx.from_pandas_edgelist(edges)\n\n# Create plot\nplt.figure(figsize=(10, 6))\nnx.draw(G, with_labels=True)\nplt.title('Network Graph')\nplt.xlabel('Nodes')\nplt.ylabel('Edges')\n\n# Save to file\noutput_file = 'graph.png'\nplt.savefig(output_file, dpi=150, bbox_inches='tight')\n\n# Convert to base64\nbuffer = BytesIO()\nplt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')\nbuffer.seek(0)\nimg_base64 = base64.b64encode(buffer.getvalue()).decode()\nbuffer.close()\nplt.close()\n\n# Save base64 to JSON\nimport json\nresult = {\"plot_base64\": img_base64, \"plot_file\": output_file}\njson_file = output_file.replace('.png', '_base64.json')\nwith open(json_file, 'w') as f:\n    json.dump(result, f, indent=2)\n\nprint(f\"Plot saved to {output_file} and base64 data to {json_file}\")",
+    "expires": 1755629798.2088554
+  },
+  "code:v2:plot:action_005": {
+    "value": "import matplotlib\nmatplotlib.use('Agg')  # Non-interactive backend\nimport matplotlib.pyplot as plt\nimport pandas as pd\nimport networkx as nx\nimport base64\nfrom io import BytesIO\nimport json\n\n# Load the graph\nedges = pd.read_csv('edges.csv')\ngraph = nx.from_pandas_edgelist(edges)\n\n# Calculate degree distribution\ndegree_sequence = sorted([d for n, d in graph.degree()], reverse=True)\n\n# Create plot\nplt.figure(figsize=(10, 6))\nplt.hist(degree_sequence, color='green')\nplt.title('Degree Distribution')\nplt.xlabel('Degree')\nplt.ylabel('Frequency')\n\n# Save to file\noutput_file = 'degree_distribution.png'\nplt.savefig(output_file, dpi=150, bbox_inches='tight')\n\n# Convert to base64\nbuffer = BytesIO()\nplt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')\nbuffer.seek(0)\nimg_base64 = base64.b64encode(buffer.getvalue()).decode()\nbuffer.close()\nplt.close()\n\n# Save base64 to JSON\nresult = {\"plot_base64\": img_base64, \"plot_file\": output_file}\njson_file = output_file.replace('.png', '_base64.json')\nwith open(json_file, 'w') as f:\n    json.dump(result, f, indent=2)\n\nprint(f\"Plot saved to {output_file} and base64 data to {json_file}\")",
+    "expires": 1755627004.0104034
+  },
+  "code:plot:action_005": {
+    "value": "import matplotlib\nmatplotlib.use('Agg')  # Non-interactive backend\nimport matplotlib.pyplot as plt\nimport pandas as pd\nimport networkx as nx\nimport base64\nfrom io import BytesIO\nimport json\n\n# Load the graph\nedges = pd.read_csv('edges.csv')\ngraph = nx.from_pandas_edgelist(edges)\n\n# Calculate degree distribution\ndegree_sequence = sorted([d for n, d in graph.degree()], reverse=True)\n\n# Create plot\nplt.figure(figsize=(10, 6))\nplt.hist(degree_sequence, color='green')\nplt.title('Degree Distribution')\nplt.xlabel('Degree')\nplt.ylabel('Frequency')\n\n# Save to file\noutput_file = 'degree_distribution.png'\nplt.savefig(output_file, dpi=150, bbox_inches='tight')\n\n# Convert to base64\nbuffer = BytesIO()\nplt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')\nbuffer.seek(0)\nimg_base64 = base64.b64encode(buffer.getvalue()).decode()\nbuffer.close()\nplt.close()\n\n# Save base64 to JSON\nresult = {\"plot_base64\": img_base64, \"plot_file\": output_file}\njson_file = output_file.replace('.png', '_base64.json')\nwith open(json_file, 'w') as f:\n    json.dump(result, f, indent=2)\n\nprint(f\"Plot saved to {output_file} and base64 data to {json_file}\")",
+    "expires": 1755629801.224581
+  },
+  "code:v2:export:action_006": {
+    "value": "import json\nimport glob\nimport pandas as pd\nimport numpy as np\nimport os\n\n# Define the variables to be exported\nvariables = [\"edge_count\", \"highest_degree_node\", \"average_degree\", \"density\", \"shortest_path_alice_eve\", \"network_graph\", \"degree_histogram\"]\n\n# Initialize the result dictionary\nresult = {}\n\n# Load the data from the JSON files\nfor var in variables:\n    if os.path.exists(f\"{var}_base64.json\"):\n        with open(f\"{var}_base64.json\", 'r') as f:\n            result[var] = json.load(f)\n    else:\n        result[var] = \"Data not available\"\n\n# Export the results as a JSON file\nwith open('results.json', 'w') as f:\n    json.dump(result, f)",
+    "expires": 1755627014.9677122
+  },
+  "code:export:action_006": {
+    "value": "import json\nimport glob\nimport pandas as pd\nimport numpy as np\nimport os\n\n# Define the variables to be exported\nvariables = [\"edge_count\", \"highest_degree_node\", \"average_degree\", \"density\", \"shortest_path_alice_eve\", \"network_graph\", \"degree_histogram\"]\n\n# Initialize the result dictionary\nresult = {}\n\n# Load the data from the JSON files\nfor var in variables:\n    if os.path.exists(f\"{var}_base64.json\"):\n        with open(f\"{var}_base64.json\", 'r') as f:\n            result[var] = json.load(f)\n    else:\n        result[var] = \"Data not available\"\n\n# Export the results as a JSON file\nwith open('results.json', 'w') as f:\n    json.dump(result, f)",
+    "expires": 1755629802.2974818
+  },
+  "plan:053ec6b526229a680651d2d7533c5994": {
+    "value": {
+      "plan_id": "network_analysis_001",
+      "task_description": "Use the undirected network in `edges.csv`.\r\n\r\nReturn a JSON object with keys:\r\n- `edge_count`: number\r\n- `highest_degree_node`: string\r\n- `average_degree`: number\r\n- `density`: number\r\n- `shortest_path_alice_eve`: number\r\n- `network_graph`: base64 PNG string under 100kB\r\n- `degree_histogram`: base64 PNG string under 100kB\r\n\r\nAnswer:\r\n1. How many edges are in the network?\r\n2. Which node has the highest degree?\r\n3. What is the average degree of the network?\r\n4. What is the network density?\r\n5. What is the length of the shortest path between Alice and Eve?\r\n6. Draw the network with nodes labelled and edges shown. Encode as base64 PNG.\r\n7. Plot the degree distribution as a bar chart with green bars. Encode as base64 PNG.\r\n",
+      "actions": [
+        {
+          "action_id": "action_001",
+          "type": "load",
+          "description": "Load edges.csv into DataFrame",
+          "parameters": {
+            "file": "edges.csv"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "df_edges"
+          ],
+          "dependencies": [],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_002",
+          "type": "graph",
+          "description": "Create a graph from the DataFrame",
+          "parameters": {
+            "dataframe": "df_edges",
+            "source_column": "source",
+            "target_column": "target"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "graph"
+          ],
+          "dependencies": [
+            "action_001"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_003",
+          "type": "graph",
+          "description": "Calculate network metrics",
+          "parameters": {
+            "graph": "graph",
+            "metrics": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "edge_count",
+            "highest_degree_node",
+            "average_degree",
+            "density",
+            "shortest_path_alice_eve"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_004",
+          "type": "plot",
+          "description": "Draw the network graph",
+          "parameters": {
+            "graph": "graph",
+            "labels": true,
+            "edges": true
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "network_graph"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 60
+        },
+        {
+          "action_id": "action_005",
+          "type": "plot",
+          "description": "Plot the degree distribution",
+          "parameters": {
+            "graph": "graph",
+            "type": "bar",
+            "color": "green"
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [
+            "degree_histogram"
+          ],
+          "dependencies": [
+            "action_002"
+          ],
+          "estimated_time": 30
+        },
+        {
+          "action_id": "action_006",
+          "type": "export",
+          "description": "Export results as JSON",
+          "parameters": {
+            "format": "json",
+            "variables": [
+              "edge_count",
+              "highest_degree_node",
+              "average_degree",
+              "density",
+              "shortest_path_alice_eve",
+              "network_graph",
+              "degree_histogram"
+            ]
+          },
+          "input_files": [],
+          "output_files": [],
+          "input_variables": [],
+          "output_variables": [],
+          "dependencies": [
+            "action_003",
+            "action_004",
+            "action_005"
+          ],
+          "estimated_time": 30
+        }
+      ],
+      "estimated_total_time": 240,
+      "metadata": {}
+    },
+    "expires": 1755629754.3592315
   }
 }

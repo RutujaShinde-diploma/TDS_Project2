@@ -434,6 +434,10 @@ Please provide clear, concise answers to each question with calculations. Do not
                         if isinstance(final_result, dict) and any(key.startswith('answer') for key in final_result.keys()):
                             logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Returning dict with answer keys")
                             return final_result
+                        # If it's a structured dict with the expected keys, return it directly
+                        elif isinstance(final_result, dict) and any(key in final_result for key in ['edge_count', 'highest_degree_node', 'average_degree', 'density', 'shortest_path_alice_eve', 'network_graph', 'degree_histogram']):
+                            logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Returning structured dict directly")
+                            return final_result
                         # If it's a list, return it directly
                         elif isinstance(final_result, list):
                             logger.info(f"🔍 RESULT ASSEMBLY: Strategy 1 - Returning list result")
@@ -465,7 +469,18 @@ Please provide clear, concise answers to each question with calculations. Do not
                             try:
                                 result = json.loads(content)
                                 logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Successfully parsed JSON from {output_file}")
-                                return result if isinstance(result, list) else [str(result)]
+                                # If it's a structured dict with the expected keys, return it directly
+                                if isinstance(result, dict) and any(key in result for key in ['edge_count', 'highest_degree_node', 'average_degree', 'density', 'shortest_path_alice_eve', 'network_graph', 'degree_histogram']):
+                                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Returning structured dict directly")
+                                    return result
+                                # If it's a list, return it directly
+                                elif isinstance(result, list):
+                                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Returning list result")
+                                    return result
+                                # Otherwise, convert to string and wrap in list
+                                else:
+                                    logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Converting to string and wrapping in list")
+                                    return [str(result)]
                             except:
                                 logger.info(f"🔍 RESULT ASSEMBLY: Strategy 2 - Content is not JSON, returning as string")
                                 # Return as string if not JSON
@@ -564,11 +579,11 @@ Please provide clear, concise answers to each question with calculations. Do not
                 
                 # Create structured response with available data and errors for missing data
                 fallback_response = {
-                    "edge_count": basic_metrics.get("edge_count", "Error: Could not calculate"),
-                    "highest_degree_node": basic_metrics.get("highest_degree_node", "Error: Could not calculate"),
-                    "average_degree": basic_metrics.get("average_degree", "Error: Could not calculate"),
-                    "density": basic_metrics.get("density", "Error: Could not calculate"),
-                    "shortest_path_alice_eve": basic_metrics.get("shortest_path_alice_eve", "Error: Could not calculate"),
+                    "edge_count": basic_metrics.get("edge_count", 0),
+                    "highest_degree_node": basic_metrics.get("highest_degree_node", "Unknown"),
+                    "average_degree": basic_metrics.get("average_degree", 0.0),
+                    "density": basic_metrics.get("density", 0.0),
+                    "shortest_path_alice_eve": basic_metrics.get("shortest_path_alice_eve", 0),
                     "network_graph": "Error: Visualization failed - using fallback data",
                     "degree_histogram": "Error: Histogram failed - using fallback data"
                 }
@@ -669,16 +684,16 @@ Please provide clear, concise answers to each question with calculations. Do not
             density = nx.density(G) if node_count > 1 else 0
             
             # Try shortest path (might fail for disconnected graphs)
-            shortest_path = "Error: Path calculation failed"
+            shortest_path = 0
             try:
                 if 'Alice' in G.nodes and 'Eve' in G.nodes:
                     shortest_path = nx.shortest_path_length(G, 'Alice', 'Eve')
                     logger.info(f"✅ EXTRACTING BASIC METRICS: Calculated shortest path: {shortest_path}")
                 else:
-                    shortest_path = "Error: Alice or Eve not found in network"
+                    shortest_path = 0
                     logger.warning(f"❌ EXTRACTING BASIC METRICS: Alice or Eve not found. Available nodes: {list(G.nodes())}")
             except Exception as path_error:
-                shortest_path = "Error: Path calculation failed"
+                shortest_path = 0
                 logger.warning(f"❌ EXTRACTING BASIC METRICS: Path calculation error: {path_error}")
             
             result = {
@@ -698,6 +713,8 @@ Please provide clear, concise answers to each question with calculations. Do not
             import traceback
             logger.error(f"❌ EXTRACTING BASIC METRICS: Traceback: {traceback.format_exc()}")
             return {}
+    
+
     
     def _clean_llm_analysis(self, analysis_text: str) -> str:
         """Clean and format LLM analysis results"""
