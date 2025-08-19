@@ -216,6 +216,7 @@ async def analyze_data(
     request: Request,
     questions: UploadFile = File(None, description="questions.txt file with task description"),
     questions_txt: UploadFile = File(None, description="Alternative field name for questions.txt"),
+    questions_txt_file: UploadFile = File(None, description="Field name 'questions.txt' for instructor compatibility"),
     files: List[UploadFile] = File(default=[], description="Optional data files"),
 ):
     """
@@ -236,8 +237,20 @@ async def analyze_data(
     logger.info(f"Starting job {job_id}")
     
     try:
-        # Handle both field names for questions file
-        questions_file = questions or questions_txt
+        # Handle multiple field names for questions file (instructor compatibility)
+        questions_file = questions or questions_txt or questions_txt_file
+        
+        # Also check for the instructor's specific field name 'questions.txt'
+        if not questions_file:
+            try:
+                form_data = await request.form()
+                for field_name, field_value in form_data.items():
+                    if field_name == 'questions.txt' and hasattr(field_value, 'filename') and field_value.filename:
+                        questions_file = field_value
+                        logger.info(f"📁 Found questions file in instructor-compatible field 'questions.txt': {field_value.filename}")
+                        break
+            except Exception as e:
+                logger.warning(f"⚠️ Could not check form data for instructor compatibility: {e}")
         
         # Enhanced debug logging for file upload
         logger.info(f"=== FILE UPLOAD DEBUG ===")
@@ -344,7 +357,7 @@ async def analyze_data(
             
             for field_name, field_value in form_data.items():
                 # Skip the questions fields and files field we already processed
-                if field_name in ['questions', 'questions_txt', 'files']:
+                if field_name in ['questions', 'questions_txt', 'questions_txt_file', 'questions.txt', 'files']:
                     continue
                 
                 # If this field contains a file, process it
