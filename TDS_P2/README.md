@@ -1,289 +1,253 @@
-# Data Analyst Agent API
+# TDS Project 2: Data Analyst Agent
 
-A powerful API that uses Large Language Models (LLMs) to autonomously source, prepare, analyze, and visualize data. The system accepts arbitrary data analysis requests via natural language and returns comprehensive answers within 3 minutes.
+## 🎯 Project Overview
+A deployed data analyst agent that uses LLMs to source, prepare, analyze, and visualize any data. The system automatically processes user queries, generates analysis plans, and executes them to provide structured results within 5 minutes.
 
-## Features
+## ✨ Key Features
+- **Intelligent Planning**: LLM-powered action planning based on user questions
+- **Multi-Format Support**: Handles various data formats automatically
+- **Dynamic Analysis**: Automatically detects task type and generates appropriate code
+- **Progressive Output**: Builds results step-by-step through multiple actions
+- **Flexible Output**: Supports both JSON object and array formats based on user requirements
+- **Cache Management**: Efficient caching system for code generation and execution
+- **5-Minute Response**: Guaranteed response time for all analysis tasks
 
-- **LLM-Driven Planning**: Creates detailed execution plans for complex analysis tasks
-- **Multi-Action Support**: Scraping, loading, statistical analysis, visualization, and more
-- **Secure Execution**: Sandboxed code execution with Docker isolation
-- **Error Recovery**: Automatic retry and code repair mechanisms
-- **Caching**: Intelligent caching for performance optimization
-- **Comprehensive Logging**: Full audit trail of all operations
-
-## Architecture
-
-### Core Components
-
-1. **API Endpoint (FastAPI)**: Handles POST requests with file uploads
-2. **Planner Module**: LLM-driven task analysis and plan generation
-3. **Plan Validator**: Safety checks and schema validation
-4. **Orchestrator**: Sequential action execution with retry logic
-5. **Sandbox Environment**: Secure Docker-based code execution
-6. **Code Generator**: LLM-powered Python code generation
-7. **Cache Manager**: Redis-based caching for performance
-
-### Supported Action Types
-
-- `scrape`: Extract data from web pages
-- `load`: Load data files into DataFrames
-- `sql`: Execute SQL queries on loaded data
-- `stats`: Perform statistical computations
-- `plot`: Create visualizations and charts
-- `export`: Format and export final results
-- `api_call`: Make external API requests
-- `time_series`: Time series analysis
-- `text_analysis`: NLP and text processing
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Docker and Docker Compose
-- OpenAI API key
-- Redis (included in docker-compose)
+- Python 3.8+
+- Required packages (see requirements.txt)
 
 ### Installation
-
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd TDS_P2
-```
-
-2. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your OpenAI API key
-```
-
-3. Start the services:
-```bash
-docker-compose up -d
-```
-
-4. The API will be available at `http://localhost:8000`
-
-### Development Setup
-
-1. Install Python dependencies:
-```bash
+git clone https://github.com/RutujaShinde-diploma/TDS_Project2.git
+cd TDS_Project2
 pip install -r requirements.txt
 ```
 
-2. Start Redis:
+### Running the Application
 ```bash
-docker run -d -p 6379:6379 redis:7-alpine
+python main.py
+```
+The server will start on `http://localhost:8002`
+
+## 🌐 Deployment
+The application is deployed on **Render** and accessible via the public API endpoint.
+
+## 📁 Supported File Types
+The system can accept and process various file formats:
+- **Text Files**: .txt, .md, .json
+- **Data Files**: .csv, .xlsx, .xls, .tsv
+- **Image Files**: .png, .jpg, .jpeg, .gif, .bmp
+- **Document Files**: .pdf, .doc, .docx
+- **Code Files**: .py, .js, .html, .css
+- **Archive Files**: .zip, .tar, .gz
+
+## 🏗️ Project Structure
+
+### Main Application Files
+```
+TDS_P2/
+├── main.py                 # Main application entry point and server setup
+├── code_generator.py       # Core LLM integration and code execution engine
+├── planner.py              # Intelligent action planning and task orchestration
+├── orchestrator.py         # Task execution coordination and workflow management
+├── models.py               # Data models, structures, and database schemas
+├── config.py               # Configuration settings and environment variables
+├── requirements.txt        # Python dependencies and package versions
+└── .env.example           # Environment variables template (no secrets)
 ```
 
-3. Set environment variables:
-```bash
-export OPENAI_API_KEY="your-api-key"
-export REDIS_URL="redis://localhost:6379"
+### Utility and Support Directories
+```
+TDS_P2/
+├── utils/                  # Utility functions and helper modules
+│   ├── __init__.py        # Package initialization
+│   ├── simple_storage.py  # Basic storage and caching utilities
+│   └── helpers.py         # Common helper functions
+├── storage/                # Data storage and cache management
+│   ├── __init__.py        # Storage package initialization
+│   ├── cache.json         # Cache storage file
+│   └── database.py        # Database connection and operations
+└── tests/                  # Test cases and validation scripts
+    ├── test2/             # Network analysis test cases
+    │   ├── questions.txt  # Test questions
+    │   ├── edges.csv      # Test data
+    │   └── test_network_analysis.py
+    └── test3/             # Weather data analysis test cases
+        ├── questions.txt  # Test questions
+        └── sample-weather.csv  # Test data
 ```
 
-4. Run the application:
-```bash
-uvicorn main:app --reload
+### Configuration and Documentation
+```
+TDS_P2/
+├── .gitignore             # Git ignore patterns
+├── README.md              # This documentation file
+├── LICENSE                # MIT License file
+└── .env.example          # Environment variables template
 ```
 
-## Usage
+## 🔌 API Endpoints
 
-### API Endpoint
+### Main Analysis Endpoint
+```bash
+POST https://app.example.com/api/
+```
+- **Purpose**: Main data analysis endpoint
+- **Parameters**: questions.txt (required) + optional data files
+- **Response Time**: Within 5 minutes
 
-The main endpoint accepts POST requests with file uploads:
+### Cache Management Endpoints
+```bash
+POST https://app.example.com/api/cache/clear/code
+```
+- **Purpose**: Clear code generation cache
 
 ```bash
-curl -X POST "http://localhost:8000/api/" \
-  -F "questions=@questions.txt" \
-  -F "files=@data.csv" \
-  -F "files=@image.png" \
-  -F "files=@additional_data.json"
+POST https://app.example.com/api/cache/clear/data
 ```
+- **Purpose**: Clear data processing cache
+
+## 📋 Implementation Guide
+
+### For Developers Who Want to Implement
+
+#### Step 1: Clone and Setup
+```bash
+git clone https://github.com/RutujaShinde-diploma/TDS_Project2.git
+cd TDS_Project2
+pip install -r requirements.txt
+```
+
+#### Step 2: Configure Environment
+- Copy `.env.example` to `.env`
+- Set up your LLM API keys in `.env`
+- Configure timeout and other settings
+- Set up your database/storage if needed
+
+#### Step 3: Understand Core Components
+- **main.py**: Entry point and server setup
+- **code_generator.py**: LLM integration and code execution
+- **planner.py**: Action planning and task orchestration
+- **orchestrator.py**: Task execution coordination
+- **models.py**: Data structures and models
+
+#### Step 4: Customize for Your Use Case
+- Modify the LLM prompts in `code_generator.py`
+- Adjust the action types in `planner.py`
+- Customize output formats in `orchestrator.py`
+
+#### Step 5: Deploy
+- Choose your hosting platform (Render, AWS, etc.)
+- Set up environment variables
+- Deploy using your preferred method
+
+## 🔌 API Usage
 
 ### Request Format
+```bash
+curl "https://app.example.com/api/" \
+  -F "questions.txt=@questions.txt" \
+  -F "data.csv=@data.csv" \
+  -F "image.png=@image.png"
+```
 
-- `questions` (required): Contains the analysis questions/tasks
-- `files` (optional): Multiple data files, images, etc. Can be specified multiple times
+### Required Parameters
+- **questions.txt**: ALWAYS required - contains the analysis questions
+- **Additional files**: Zero or more data files in various formats
 
 ### Response Format
+- **Response Time**: Within 5 minutes
+- **Format**: As specified in questions.txt (JSON object, array, or custom format)
 
-The API returns a JSON response with:
-- `job_id`: Unique identifier for the request
-- `status`: Current processing status
-- `result`: Final analysis results (when completed)
-- `execution_time`: Total processing time
-- `error`: Error message (if failed)
+## 🧠 How It Works
 
-### Example Request
+### 1. User Input
+- Upload questions.txt with analysis requirements
+- Optionally upload data files (CSV, images, etc.)
 
-**questions.txt:**
-```
-Analyze the sales data and answer these questions:
-1. What are the top 5 products by revenue?
-2. What is the monthly sales trend?
-3. Create a visualization showing revenue by category.
-Return results as a JSON array of strings.
-```
+### 2. Intelligent Planning
+- System analyzes questions and available data
+- LLM generates optimal action plan
+- Actions are sequenced for efficient execution
 
-**Response:**
-```json
-{
-  "job_id": "12345-abcde",
-  "status": "completed",
-  "result": [
-    "Top 5 products: Product A ($50K), Product B ($45K), ...",
-    "Monthly trend shows 15% growth from Jan to Dec",
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-  ],
-  "execution_time": 87.5
-}
-```
+### 3. Progressive Execution
+- Each action builds upon previous results
+- Intermediate results stored progressively
+- Final export generates structured output
 
-## Configuration
+### 4. Dynamic Output Format
+- **JSON Object**: When specific keys are specified in questions
+- **Array Format**: When generic numbered answers are requested
+- **Fallback**: Generic answer1, answer2, etc. when no format specified
 
-### Environment Variables
+## 📝 Questions Format
 
-- `OPENAI_API_KEY`: OpenAI API key (required)
-- `OPENAI_MODEL`: Primary model (default: gpt-4)
-- `OPENAI_FALLBACK_MODEL`: Fallback model (default: gpt-3.5-turbo)
-- `MAX_EXECUTION_TIME`: Maximum execution time in seconds (default: 180)
-- `REDIS_URL`: Redis connection URL
-- `LOG_LEVEL`: Logging level (default: INFO)
-
-### Safety Configuration
-
-The system includes several safety measures:
-
-- **Blocked imports**: `os`, `subprocess`, `sys`, etc.
-- **Code validation**: AST analysis for dangerous patterns
-- **Domain whitelist**: Only approved domains for scraping
-- **Resource limits**: CPU, memory, and time constraints
-- **Sandbox isolation**: Docker containers with restricted access
-
-## API Documentation
-
-### Health Check
-
-```
-GET /health
+### JSON Object Format
+```txt
+JSON object with keys:
+- `metric_name`: data_type
+- `another_metric`: data_type
 ```
 
-Returns system health status and component availability.
-
-### Job Status
-
-```
-GET /api/job/{job_id}
-```
-
-Returns the current status and results of a specific job.
-
-## Development
-
-### Adding New Action Types
-
-1. Add the action type to `models.py`:
-```python
-class ActionType(str, Enum):
-    NEW_ACTION = "new_action"
+### Array Format
+```txt
+1. First question about the data?
+2. Second question about the data?
+3. Third question about the data?
 ```
 
-2. Add validation logic in `validator.py`
-3. Add code generation instructions in `code_generator.py`
-4. Update the planner prompts to include the new action type
+## ⚙️ Configuration
 
-### Testing
+Key settings in `config.py`:
+- **Timeout**: Action execution timeout (default: 300s)
+- **Model**: LLM model configuration
+- **Cache**: Cache management settings
+- **Response Time**: Configured for 5-minute guarantee
 
-Run the test suite:
-```bash
-pytest tests/
-```
+## 🔍 Supported Analysis Types
 
-### Monitoring
+- **Statistical Analysis**: Mean, median, correlation, etc.
+- **Data Processing**: Filtering, grouping, aggregation
+- **Custom Calculations**: User-defined metrics and formulas
+- **Data Export**: Structured output in various formats
+- **Data Visualization**: Charts, graphs, and visual representations
 
-The application includes comprehensive logging:
-- Structured JSON logs
-- Request/response tracking
-- Performance metrics
-- Error tracking
+## 🚨 Performance Requirements
 
-Logs are available in the `logs/` directory.
+- **Response Time**: Maximum 5 minutes for any analysis task
+- **Scalability**: Handles multiple concurrent requests
+- **Reliability**: Robust error handling and fallback mechanisms
+- **Efficiency**: Optimized code generation and execution
 
-## Security
+## 🔒 Security Best Practices
 
-### Sandbox Security
+- **Never commit your .env file or any secrets to version control**
+- **Use .env.example to share variable names (not values)**
+- **Always use environment variables for API keys and passwords**
+- **Implement proper authentication and authorization**
+- **Validate and sanitize all user inputs**
+- **Use HTTPS for all API communications**
 
-- Docker container isolation
-- No network access except allowed domains
-- Restricted file system access
-- Resource limits (CPU, memory, time)
-- Static code analysis before execution
-
-### Input Validation
-
-- File type restrictions
-- Size limits
-- Content validation
-- SQL injection prevention
-- XSS protection
-
-## Performance
-
-### Optimization Features
-
-- Redis caching for LLM responses
-- Code pattern caching
-- File metadata caching
-- Parallel processing where possible
-- Efficient memory management
-
-### Scaling
-
-The system can be scaled horizontally:
-- Multiple API instances behind a load balancer
-- Shared Redis cache
-- Distributed file storage
-- Background job processing
-
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 ### Common Issues
-
-1. **OpenAI API Errors**: Check API key and rate limits
-2. **Docker Issues**: Ensure Docker daemon is running
-3. **Memory Errors**: Increase Docker memory limits
-4. **Timeout Errors**: Adjust `MAX_EXECUTION_TIME`
+1. **Timeout Errors**: Increase timeout in config.py
+2. **Cache Issues**: Clear cache using API endpoints
+3. **Import Errors**: Check generated code for missing imports
 
 ### Debug Mode
-
-Enable debug logging:
-```bash
-export LOG_LEVEL=DEBUG
+Enable detailed logging for troubleshooting:
+```python
+# In config.py
+DEBUG = True
 ```
 
-### Health Checks
+## 📄 License
+This project is licensed under the MIT License. See the LICENSE file for details.
 
-Monitor the health endpoint:
-```bash
-curl http://localhost:8000/health
-```
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## Support
-
-For issues and questions:
-1. Check the troubleshooting section
-2. Review the logs
-3. Open an issue on GitHub
+## 🙏 Acknowledgements
+- **IIT Madras Online Degree** - Educational platform and guidance
+- **Course content by S. Anand** - Expert instruction and curriculum
+- **Discourse Community** - Community support and collaboration

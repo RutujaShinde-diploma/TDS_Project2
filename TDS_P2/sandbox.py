@@ -111,12 +111,146 @@ class CodeValidator:
         
         return errors
 
+class PackageInstaller:
+    """Dynamically install missing packages"""
+    
+    def __init__(self):
+        self.installed_packages = set()
+        self.installation_attempts = {}
+    
+    async def install_missing_packages(self, code: str) -> Dict[str, Any]:
+        """Analyze code and install missing packages"""
+        try:
+            # Extract import statements from code
+            imports = self._extract_imports(code)
+            logger.info(f"🔍 PACKAGE INSTALLER: Found imports: {imports}")
+            
+            missing_packages = []
+            for imp in imports:
+                package_name = self._get_package_name(imp)
+                if package_name and not self._is_package_installed(package_name):
+                    missing_packages.append(package_name)
+            
+            logger.info(f"🔍 PACKAGE INSTALLER: Missing packages: {missing_packages}")
+            
+            # Install missing packages
+            installation_results = {}
+            for package in missing_packages:
+                if package not in self.installation_attempts:
+                    result = await self._install_package(package)
+                    installation_results[package] = result
+                    self.installation_attempts[package] = result
+                else:
+                    installation_results[package] = self.installation_attempts[package]
+            
+            return {
+                "success": True,
+                "missing_packages": missing_packages,
+                "installation_results": installation_results
+            }
+            
+        except Exception as e:
+            logger.error(f"Package installation failed: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def _extract_imports(self, code: str) -> List[str]:
+        """Extract all import statements from code"""
+        imports = []
+        lines = code.split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            # Match import statements
+            if line.startswith('import ') or line.startswith('from '):
+                imports.append(line)
+        
+        return imports
+    
+    def _get_package_name(self, import_stmt: str) -> str:
+        """Extract package name from import statement"""
+        if import_stmt.startswith('import '):
+            # import pandas -> pandas
+            package = import_stmt[7:].split(' as ')[0].split('.')[0]
+        elif import_stmt.startswith('from '):
+            # from sklearn.ensemble import RandomForestClassifier -> sklearn
+            parts = import_stmt[5:].split(' import ')[0]
+            package = parts.split('.')[0]
+        else:
+            return None
+        
+        # Handle common package name mappings
+        package_mapping = {
+            'cv2': 'opencv-python',
+            'PIL': 'Pillow',
+            'sklearn': 'scikit-learn',
+            'bs4': 'beautifulsoup4',
+            'yaml': 'PyYAML',
+            'yaml': 'PyYAML'
+        }
+        
+        return package_mapping.get(package, package)
+    
+    def _is_package_installed(self, package_name: str) -> bool:
+        """Check if package is already installed"""
+        try:
+            __import__(package_name.replace('-', '_'))
+            return True
+        except ImportError:
+            return False
+    
+    async def _install_package(self, package_name: str) -> Dict[str, Any]:
+        """Install a package using pip"""
+        try:
+            logger.info(f"🔍 PACKAGE INSTALLER: Installing {package_name}")
+            
+            # Use subprocess to install package
+            process = await asyncio.create_subprocess_exec(
+                sys.executable, '-m', 'pip', 'install', package_name,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=60  # 1 minute timeout for package installation
+            )
+            
+            success = process.returncode == 0
+            output = stdout.decode() if stdout else ""
+            error = stderr.decode() if stderr else ""
+            
+            if success:
+                logger.info(f"🔍 PACKAGE INSTALLER: Successfully installed {package_name}")
+                self.installed_packages.add(package_name)
+            else:
+                logger.warning(f"🔍 PACKAGE INSTALLER: Failed to install {package_name}: {error}")
+            
+            return {
+                "success": success,
+                "package": package_name,
+                "output": output,
+                "error": error
+            }
+            
+        except Exception as e:
+            logger.error(f"🔍 PACKAGE INSTALLER: Error installing {package_name}: {str(e)}")
+            return {
+                "success": False,
+                "package": package_name,
+                "error": str(e)
+            }
+
 class SandboxExecutor:
     """Execute code in a secure sandbox environment"""
     
     def __init__(self):
         self.docker_client = None
         self.validator = CodeValidator()
+        self.package_installer = PackageInstaller()
+        self.execution_count = 0
     
 
     
@@ -131,6 +265,15 @@ class SandboxExecutor:
                 return {
                     "success": False,
                     "error": f"Code validation failed: {'; '.join(validation_errors)}",
+                    "execution_time": time.time() - start_time
+                }
+            
+            # Install missing packages
+            package_install_result = await self.package_installer.install_missing_packages(code)
+            if not package_install_result["success"]:
+                return {
+                    "success": False,
+                    "error": f"Package installation failed: {package_install_result['error']}",
                     "execution_time": time.time() - start_time
                 }
             
